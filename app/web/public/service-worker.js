@@ -1,4 +1,4 @@
-const CACHE_NAME = 'rrpg-shell-v1';
+const CACHE_NAME = 'freecast-shell-v1';
 const PRECACHE_URLS = ['./', './manifest.webmanifest', './favicon.svg'];
 
 self.addEventListener('install', event => {
@@ -23,7 +23,9 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(key => key.startsWith('rrpg-shell-') && key !== CACHE_NAME).map(key => caches.delete(key))))
+      .then(keys => Promise.all(keys.filter(key =>
+        (key.startsWith('freecast-shell-') || key.startsWith('rrpg-shell-')) && key !== CACHE_NAME
+      ).map(key => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });

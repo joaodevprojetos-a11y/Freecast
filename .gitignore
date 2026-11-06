@@ -1,4 +1,4 @@
 
 # Rust build artifacts
 target/
-
+**/node_modules/

@@ -1,6 +1,6 @@
-# Aplicativo web RRPG
+# Aplicativo web FREECAST
 
-O frontend React/Vite fica em `web/`; a API Express/WebSocket e o banco SQLite ficam em `server/`. O aplicativo nativo Rust/egui e seus dados continuam separados e não são alterados por estes comandos. O backend requer Node.js 22 ou superior.
+O frontend React/Vite fica em `web/`; a API Express/WebSocket fica em `server/`. O aplicativo nativo Rust/egui e seus dados continuam separados e não são alterados por estes comandos. O backend requer Node.js 22 ou superior.
 
 ## Desenvolvimento local
 
@@ -16,9 +16,9 @@ Set-Location app\web
 npm run dev
 ```
 
-O backend escuta em `127.0.0.1:4000`; o Vite usa `http://localhost:3000`. As migrações SQLite são aplicadas ao iniciar o backend. O arquivo padrão é `server/data/rrpg.sqlite`; `RRPG_DB_PATH` permite escolher outro caminho persistente.
+O backend escuta em `127.0.0.1:4000`; o Vite usa `http://localhost:3000`. Sem `DATABASE_URL`, as migrações SQLite são aplicadas ao iniciar o backend. O arquivo padrão é `server/data/rrpg.sqlite`; `RRPG_DB_PATH` permite escolher outro caminho persistente. Com `DATABASE_URL`, o servidor usa PostgreSQL e aplica apenas as migrações de esquema; nenhum dado SQLite é importado.
 
-Crie uma conta local com senha de pelo menos 12 caracteres. As salas criadas são públicas. A sala inicial de demonstração é compartilhada e não deve conter dados privados. Fichas ficam visíveis ao dono e ao mestre; notas de campanha são privadas do mestre. Nesta versão, somente o mestre move tokens.
+Crie uma conta no servidor com senha de pelo menos 12 caracteres. As salas criadas são públicas. A sala inicial de demonstração é compartilhada e não deve conter dados privados. Fichas ficam visíveis ao dono e ao mestre; notas de campanha são privadas do mestre. Nesta versão, somente o mestre move tokens.
 
 ## Verificações
 
@@ -42,14 +42,16 @@ Set-Location app\web
 npm run build
 ```
 
-Configure no ambiente do processo:
+Em produção, configure no ambiente do processo:
 
 - `NODE_ENV=production`
+- `DATABASE_URL` como variável secreta, usando a conexão PostgreSQL do banco escolhido
 - `WEB_ORIGIN=https://<origem-configurada>` para validar origem e cookies
-- `IP` e `PORT` fornecidos pelo provedor
-- `RRPG_DB_PATH` apontando para um diretório gravável e persistente
+- `BIND_HOST=0.0.0.0` e `PORT` fornecidos pelo provedor
 
 O mesmo Express atende HTTP e WebSocket em `/ws`; não configure um segundo backend. O armazenamento SQLite é local a um único processo e não é compartilhado entre instâncias.
+
+O repositório inclui um `Dockerfile` para construir o frontend e executar o Express existente. O `.dockerignore` exclui bancos locais, variáveis de ambiente, dependências e o vídeo de referência.
 
 ## PWA e offline
 
@@ -57,4 +59,4 @@ O manifest e o service worker ficam em `web/public/`. O shell HTML/CSS/JS pode a
 
 ## Limitações e publicação
 
-Não há salas privadas/invites, recuperação de senha, ficha específica de sistema, biblioteca de tokens/arte de mapas, presença online, nem armazenamento multi-instância. O painel Alwaysdata mostra uma assinatura Small de €6/mês e oferece o tipo de site Node.js; ainda não foi confirmado se adicionar o site gera custo incremental ou se serviço contínuo está incluído. Nenhum site/serviço foi criado e não houve publicação nem mudança de plano. Obtenha confirmação explícita antes de criar recursos na conta.
+Não há salas privadas/invites, recuperação de senha, ficha específica de sistema, biblioteca de tokens/arte de mapas, presença online, nem armazenamento multi-instância. A hospedagem não está configurada. O backend usa SQLite local e requer um caminho de dados persistente; não publique em um filesystem efêmero como se os dados fossem duráveis. Uma publicação com Postgres exige adaptar o armazenamento e aplicar migrações no banco escolhido. Antes de criar serviços ou consumir créditos de hospedagem, confirme o limite de custo e a estratégia de persistência. Não há configuração de deploy ou segredo incluído neste repositório.

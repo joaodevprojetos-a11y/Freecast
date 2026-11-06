@@ -134,7 +134,7 @@ export function App() {
     };
     const handleInstalled = () => {
       setInstallPrompt(null);
-      setSuccessMessage('RRPG foi instalado neste dispositivo.');
+      setSuccessMessage('FREECAST foi instalado neste dispositivo.');
     };
     window.addEventListener('online', updateOnlineState);
     window.addEventListener('offline', updateOnlineState);
@@ -174,7 +174,7 @@ export function App() {
         if (currentUser) await refreshRooms();
       })
       .catch(error => {
-        if (active) setErrorMessage(error instanceof Error ? error.message : 'Backend local indisponível.');
+        if (active) setErrorMessage(error instanceof Error ? error.message : 'Servidor indisponível.');
       })
       .finally(() => {
         if (active) setAuthLoaded(true);
@@ -651,7 +651,7 @@ export function App() {
     try {
       await installPrompt.prompt();
       const choice = await installPrompt.userChoice;
-      if (choice.outcome === 'accepted') setSuccessMessage('Instalação do RRPG iniciada.');
+      if (choice.outcome === 'accepted') setSuccessMessage('Instalação do FREECAST iniciada.');
     } catch (error) {
       setErrorMessage(error instanceof Error ? `Não foi possível iniciar a instalação: ${error.message}` : 'Não foi possível iniciar a instalação.');
     } finally {
@@ -662,41 +662,41 @@ export function App() {
   const visibleRooms = rooms.filter(room => `${room.name} ${room.gameSystem} ${room.description}`.toLocaleLowerCase().includes(roomSearch.trim().toLocaleLowerCase()));
 
   return (
-    <div className="flex h-[100dvh] min-h-[420px] flex-col overflow-hidden bg-[#12080A] font-serif text-[#E5D4C0]">
-      <header className="z-10 flex shrink-0 flex-col gap-3 border-b border-[#D4AF37]/30 bg-gradient-to-r from-[#58111A] via-[#4A0E14] to-[#2D070B] px-3 py-3 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:px-6">
+    <div className="flex h-[100dvh] min-h-[420px] flex-col overflow-hidden bg-[#101113] font-sans text-[#D0CCC4]">
+      <header className="z-10 flex shrink-0 flex-col gap-2 border-b border-[#A88956]/30 bg-gradient-to-r from-[#292A2E] via-[#292A2E] to-[#17181A] px-3 py-2 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-[#12080A]/60 border border-[#D4AF37] rounded-md shadow-inner">
-            <Shield className="w-6 h-6 text-[#D4AF37]" />
+          <div className="rounded border border-[#A88956]/60 bg-[#101113]/60 p-2 shadow-inner">
+            <Dices className="h-5 w-5 text-[#A88956]" aria-hidden="true" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-wider text-[#F3E5AB] font-serif">Rorphic RPG (RRPG)</h1>
-            <p className="text-xs uppercase tracking-widest text-[#D4AF37]/80">Mesa virtual independente</p>
+            <h1 className="text-lg font-bold tracking-[0.16em] text-[#E3D8C6]">FREECAST</h1>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-[#A88956]/80">VTT independente</p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
           <nav aria-label="Navegação principal" className="flex items-center gap-1">
-            <button type="button" onClick={() => setActivePage('lobby')} aria-current={activePage === 'lobby' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition ${activePage === 'lobby' ? 'border-[#D4AF37] bg-[#12080A]/80 text-[#F3E5AB]' : 'border-transparent text-[#E5D4C0]/70 hover:border-[#D4AF37]/40'}`}>
+            <button type="button" onClick={() => setActivePage('lobby')} aria-current={activePage === 'lobby' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition ${activePage === 'lobby' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               <Home className="mr-1 inline h-4 w-4" aria-hidden="true" />Lobby
             </button>
-            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('room')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'room' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'room' ? 'border-[#D4AF37] bg-[#12080A]/80 text-[#F3E5AB]' : 'border-transparent text-[#E5D4C0]/70 hover:border-[#D4AF37]/40'}`}>
+            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('room')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'room' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'room' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Mesa
             </button>
-            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('campaigns')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'campaigns' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'campaigns' ? 'border-[#D4AF37] bg-[#12080A]/80 text-[#F3E5AB]' : 'border-transparent text-[#E5D4C0]/70 hover:border-[#D4AF37]/40'}`}>
+            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('campaigns')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'campaigns' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'campaigns' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Campanhas
             </button>
-            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('characters')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'characters' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'characters' ? 'border-[#D4AF37] bg-[#12080A]/80 text-[#F3E5AB]' : 'border-transparent text-[#E5D4C0]/70 hover:border-[#D4AF37]/40'}`}>
+            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('characters')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'characters' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'characters' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Fichas
             </button>
           </nav>
           <div className="flex items-center gap-2">
-            <span className="flex items-center gap-2 rounded border border-[#D4AF37]/40 bg-[#12080A]/80 px-3 py-2 text-xs" role="status">
+            <span className="flex items-center gap-2 rounded border border-[#A88956]/40 bg-[#101113]/80 px-3 py-2 text-xs" role="status">
               <span className={`h-2.5 w-2.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500'}`} aria-hidden="true"></span>
-              {!isOnline ? 'Sem rede · alterações não sincronizadas' : connected ? `${activeRoom?.name || 'Sala'} · sincronizada` : user && activeRoomId ? 'Backend desconectado' : user ? 'Conecte-se a uma sala' : 'Entre para jogar'}
+              {!isOnline ? 'Sem rede · alterações não sincronizadas' : connected ? `${activeRoom?.isDemo ? 'Demonstração pública · ' : ''}${activeRoom?.name || 'Sala'} · sincronizada` : user && activeRoomId ? 'Backend desconectado' : user ? 'Conecte-se a uma sala' : 'Entre para jogar'}
             </span>
-            {user && <><span className="max-w-28 truncate text-xs text-[#F3E5AB]">{user.username}</span><button type="button" onClick={handleLogout} className="min-h-9 rounded border border-[#D4AF37]/40 px-2 text-xs text-[#E5D4C0] hover:border-[#D4AF37]">Sair</button></>}
-            {installPrompt && <button type="button" onClick={handleInstall} className="min-h-9 rounded border border-[#D4AF37]/50 px-2 text-xs text-[#F3E5AB]">Instalar app</button>}
-            <button type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Sair da tela cheia' : 'Entrar em tela cheia'} aria-pressed={isFullscreen} className="rounded border border-[#D4AF37]/40 bg-[#58111A] p-2 text-[#D4AF37] shadow transition hover:bg-[#6D1621]">
+            {user && <><span className="max-w-28 truncate text-xs text-[#E3D8C6]">{user.username}</span><button type="button" onClick={handleLogout} className="min-h-9 rounded border border-[#A88956]/40 px-2 text-xs text-[#D0CCC4] hover:border-[#A88956]">Sair</button></>}
+            {installPrompt && <button type="button" onClick={handleInstall} className="min-h-9 rounded border border-[#A88956]/50 px-2 text-xs text-[#E3D8C6]">Instalar app</button>}
+            <button type="button" onClick={toggleFullscreen} aria-label={isFullscreen ? 'Sair da tela cheia' : 'Entrar em tela cheia'} aria-pressed={isFullscreen} className="rounded border border-[#A88956]/40 bg-[#542126] p-2 text-[#A88956] shadow transition hover:bg-[#722E34]">
               <Maximize2 className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
@@ -709,32 +709,32 @@ export function App() {
       {activePage !== 'room' ? (
         <main className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-8">
           <div className="mx-auto max-w-5xl">
-            {activePage === 'lobby' && <div className="mb-6 border-b border-[#D4AF37]/30 pb-4">
-              <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#D4AF37]/80">Espaço de jogo</p>
-              <h2 className="text-2xl font-bold text-[#F3E5AB] sm:text-3xl">Salas de RPG</h2>
-              <p className="mt-2 max-w-2xl text-sm text-[#E5D4C0]/70">Crie uma sala pública ou entre em uma sala listada. A conta é local a este servidor.</p>
+            {activePage === 'lobby' && <div className="mb-5 border-b border-[#A88956]/30 pb-3">
+              <p className="mb-1 text-xs uppercase tracking-[0.18em] text-[#A88956]/80">Procurar mesas</p>
+              <h2 className="text-2xl font-bold text-[#E3D8C6] sm:text-3xl">Mesas virtuais</h2>
+              <p className="mt-2 max-w-2xl text-sm text-[#D0CCC4]/70">Entre em uma mesa pública ou crie a sua. Contas e partidas são compartilhadas pelo servidor configurado.</p>
             </div>}
-            {!authLoaded ? <p role="status" className="rounded border border-[#D4AF37]/20 bg-[#1A0A0D] p-5 text-sm">Verificando sessão no servidor…</p> : !user ? (
+            {!authLoaded ? <p role="status" className="rounded border border-[#A88956]/20 bg-[#202124] p-5 text-sm">Verificando sessão no servidor…</p> : !user ? (
               <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
-                <section className="rounded-lg border border-[#D4AF37]/30 bg-[#1A0A0D] p-5">
-                  <p className="text-xs uppercase tracking-widest text-[#D4AF37]">Conta local</p>
-                  <h3 className="mt-2 text-xl font-semibold text-[#F3E5AB]">{authMode === 'login' ? 'Entrar na mesa' : 'Criar conta'}</h3>
-                  <p className="mt-2 text-sm text-[#E5D4C0]/70">A senha é armazenada como hash no banco local. Não use uma senha de outro serviço.</p>
+                <section className="rounded-lg border border-[#A88956]/30 bg-[#202124] p-5">
+                  <p className="text-xs uppercase tracking-widest text-[#A88956]">Conta do servidor</p>
+                  <h3 className="mt-2 text-xl font-semibold text-[#E3D8C6]">{authMode === 'login' ? 'Entrar na mesa' : 'Criar conta'}</h3>
+                  <p className="mt-2 text-sm text-[#D0CCC4]/70">A senha é armazenada como hash no banco do servidor. Não use uma senha de outro serviço.</p>
                   <form onSubmit={handleAuthSubmit} className="mt-5 space-y-4">
-                    <label className="block text-sm text-[#F3E5AB]">Nome de usuário
-                      <input required minLength={3} maxLength={32} autoComplete="username" value={authUsername} onChange={event => setAuthUsername(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3 text-sm" />
+                    <label className="block text-sm text-[#E3D8C6]">Nome de usuário
+                      <input required minLength={3} maxLength={32} autoComplete="username" value={authUsername} onChange={event => setAuthUsername(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
                     </label>
-                    <label className="block text-sm text-[#F3E5AB]">Senha
-                      <input required minLength={authMode === 'register' ? 12 : 1} maxLength={128} type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={event => setAuthPassword(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3 text-sm" />
+                    <label className="block text-sm text-[#E3D8C6]">Senha
+                      <input required minLength={authMode === 'register' ? 12 : 1} maxLength={128} type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={event => setAuthPassword(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
                     </label>
-                    <button disabled={isSubmitting} type="submit" className="min-h-11 w-full rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 font-semibold text-[#F3E5AB] disabled:opacity-50">{isSubmitting ? 'Aguarde…' : authMode === 'login' ? 'Entrar' : 'Criar conta'}</button>
+                    <button disabled={isSubmitting} type="submit" className="min-h-11 w-full rounded border border-[#A88956]/60 bg-[#542126] px-4 font-semibold text-[#E3D8C6] disabled:opacity-50">{isSubmitting ? 'Aguarde…' : authMode === 'login' ? 'Entrar' : 'Criar conta'}</button>
                   </form>
-                  <button type="button" onClick={() => setAuthMode(mode => mode === 'login' ? 'register' : 'login')} className="mt-4 text-sm text-[#D4AF37] underline underline-offset-4">
+                  <button type="button" onClick={() => setAuthMode(mode => mode === 'login' ? 'register' : 'login')} className="mt-4 text-sm text-[#A88956] underline underline-offset-4">
                     {authMode === 'login' ? 'Ainda não tenho conta' : 'Já tenho uma conta'}
                   </button>
                 </section>
-                <aside className="rounded-lg border border-[#D4AF37]/20 bg-[#12080A] p-5 text-sm text-[#E5D4C0]/70">
-                  <h3 className="font-semibold text-[#F3E5AB]">Demonstração pública</h3>
+                <aside className="rounded-lg border border-[#A88956]/20 bg-[#101113] p-5 text-sm text-[#D0CCC4]/70">
+                  <h3 className="font-semibold text-[#E3D8C6]">Demonstração pública</h3>
                   <p className="mt-2">A sala inicial é compartilhada com qualquer usuário que entrar. Não coloque dados sensíveis nela.</p>
                   {errorMessage && <p className="mt-4 text-amber-200">Estado do servidor: {errorMessage}</p>}
                 </aside>
@@ -742,70 +742,70 @@ export function App() {
             ) : activePage === 'campaigns' ? (
               <section className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-8">
                 <div className="mx-auto max-w-5xl">
-                  <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#D4AF37]/80">{activeRoom?.name || 'Sala'}</p>
-                  <h2 className="mb-6 border-b border-[#D4AF37]/30 pb-4 text-2xl font-bold text-[#F3E5AB]">Campanhas e anotações</h2>
+                  <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#A88956]/80">{activeRoom?.name || 'Sala'}</p>
+                  <h2 className="mb-6 border-b border-[#A88956]/30 pb-4 text-2xl font-bold text-[#E3D8C6]">Campanhas e anotações</h2>
                   {activeRoom?.role === 'gm' && (
-                    <form onSubmit={handleSaveCampaign} className="mb-6 grid gap-3 rounded-lg border border-[#D4AF37]/30 bg-[#1A0A0D] p-4">
-                      <h3 className="font-semibold text-[#F3E5AB]">{editingCampaignId ? 'Editar campanha' : 'Nova campanha'}</h3>
-                      <label className="text-sm text-[#F3E5AB]">Nome
-                        <input required maxLength={100} value={campaignName} onChange={event => setCampaignName(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3" />
+                    <form onSubmit={handleSaveCampaign} className="mb-6 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4">
+                      <h3 className="font-semibold text-[#E3D8C6]">{editingCampaignId ? 'Editar campanha' : 'Nova campanha'}</h3>
+                      <label className="text-sm text-[#E3D8C6]">Nome
+                        <input required maxLength={100} value={campaignName} onChange={event => setCampaignName(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                       </label>
-                      <label className="text-sm text-[#F3E5AB]">Descrição
-                        <textarea maxLength={1000} value={campaignDescription} onChange={event => setCampaignDescription(event.target.value)} className="mt-1 min-h-20 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] p-3" />
+                      <label className="text-sm text-[#E3D8C6]">Descrição
+                        <textarea maxLength={1000} value={campaignDescription} onChange={event => setCampaignDescription(event.target.value)} className="mt-1 min-h-20 w-full rounded border border-[#A88956]/40 bg-[#101113] p-3" />
                       </label>
                       <div className="flex flex-wrap gap-2">
-                        <button type="submit" className="min-h-10 rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 font-semibold text-[#F3E5AB]">{editingCampaignId ? 'Salvar alterações' : 'Criar campanha'}</button>
-                        {editingCampaignId && <button type="button" onClick={() => { setEditingCampaignId(null); setCampaignName(''); setCampaignDescription(''); }} className="min-h-10 rounded border border-[#D4AF37]/30 px-4 text-sm">Cancelar</button>}
+                        <button type="submit" className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 font-semibold text-[#E3D8C6]">{editingCampaignId ? 'Salvar alterações' : 'Criar campanha'}</button>
+                        {editingCampaignId && <button type="button" onClick={() => { setEditingCampaignId(null); setCampaignName(''); setCampaignDescription(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-4 text-sm">Cancelar</button>}
                       </div>
                     </form>
                   )}
                   <div className="grid gap-4 lg:grid-cols-2">
                     <section className="space-y-3">
                       {campaigns.map(campaign => (
-                        <article key={campaign.id} className={`rounded-lg border bg-[#1A0A0D] p-4 ${selectedCampaignId === campaign.id ? 'border-[#D4AF37]' : 'border-[#D4AF37]/25'}`}>
+                        <article key={campaign.id} className={`rounded-lg border bg-[#202124] p-4 ${selectedCampaignId === campaign.id ? 'border-[#A88956]' : 'border-[#A88956]/25'}`}>
                           <button type="button" onClick={() => setSelectedCampaignId(campaign.id)} className="w-full text-left">
-                            <h3 className="font-semibold text-[#F3E5AB]">{campaign.name}</h3>
-                            <p className="mt-1 whitespace-pre-wrap text-sm text-[#E5D4C0]/70">{campaign.description || 'Sem descrição.'}</p>
+                            <h3 className="font-semibold text-[#E3D8C6]">{campaign.name}</h3>
+                            <p className="mt-1 whitespace-pre-wrap text-sm text-[#D0CCC4]/70">{campaign.description || 'Sem descrição.'}</p>
                           </button>
                           {activeRoom?.role === 'gm' && <div className="mt-3 flex gap-2">
-                            <button type="button" onClick={() => { setEditingCampaignId(campaign.id); setCampaignName(campaign.name); setCampaignDescription(campaign.description); }} className="min-h-9 rounded border border-[#D4AF37]/30 px-3 text-xs">Editar</button>
+                            <button type="button" onClick={() => { setEditingCampaignId(campaign.id); setCampaignName(campaign.name); setCampaignDescription(campaign.description); }} className="min-h-9 rounded border border-[#A88956]/30 px-3 text-xs">Editar</button>
                             <button type="button" onClick={() => handleDeleteCampaign(campaign.id)} className="min-h-9 rounded border border-red-800/60 px-3 text-xs text-red-200">Excluir</button>
                           </div>}
                         </article>
                       ))}
-                      {campaigns.length === 0 && <p className="rounded border border-[#D4AF37]/20 p-4 text-sm text-[#E5D4C0]/70">Ainda não há campanhas nesta sala.</p>}
+                      {campaigns.length === 0 && <p className="rounded border border-[#A88956]/20 p-4 text-sm text-[#D0CCC4]/70">Ainda não há campanhas nesta sala.</p>}
                     </section>
-                    <section className="rounded-lg border border-[#D4AF37]/25 bg-[#1A0A0D] p-4">
-                      <label className="block text-sm text-[#F3E5AB]">Campanha selecionada
-                        <select value={selectedCampaignId} onChange={event => setSelectedCampaignId(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3">
+                    <section className="rounded-lg border border-[#A88956]/25 bg-[#202124] p-4">
+                      <label className="block text-sm text-[#E3D8C6]">Campanha selecionada
+                        <select value={selectedCampaignId} onChange={event => setSelectedCampaignId(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3">
                           <option value="">Selecione uma campanha</option>
                           {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
                         </select>
                       </label>
                       {activeRoom?.role === 'gm' && selectedCampaignId ? (
                         <>
-                          <form onSubmit={handleSaveNote} className="mt-4 space-y-3 border-b border-[#D4AF37]/20 pb-4">
-                            <h3 className="font-semibold text-[#F3E5AB]">{editingNoteId ? 'Editar anotação' : 'Nova anotação privada do mestre'}</h3>
-                            <input required maxLength={120} value={noteTitle} onChange={event => setNoteTitle(event.target.value)} placeholder="Título" aria-label="Título da anotação" className="min-h-10 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3 text-sm" />
-                            <textarea maxLength={10000} value={noteContent} onChange={event => setNoteContent(event.target.value)} placeholder="Anotação (visível somente ao mestre)" aria-label="Conteúdo da anotação" className="min-h-28 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] p-3 text-sm" />
+                          <form onSubmit={handleSaveNote} className="mt-4 space-y-3 border-b border-[#A88956]/20 pb-4">
+                            <h3 className="font-semibold text-[#E3D8C6]">{editingNoteId ? 'Editar anotação' : 'Nova anotação privada do mestre'}</h3>
+                            <input required maxLength={120} value={noteTitle} onChange={event => setNoteTitle(event.target.value)} placeholder="Título" aria-label="Título da anotação" className="min-h-10 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
+                            <textarea maxLength={10000} value={noteContent} onChange={event => setNoteContent(event.target.value)} placeholder="Anotação (visível somente ao mestre)" aria-label="Conteúdo da anotação" className="min-h-28 w-full rounded border border-[#A88956]/40 bg-[#101113] p-3 text-sm" />
                             <div className="flex gap-2">
-                              <button type="submit" className="min-h-10 rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 text-sm text-[#F3E5AB]">Salvar anotação</button>
-                              {editingNoteId && <button type="button" onClick={() => { setEditingNoteId(null); setNoteTitle(''); setNoteContent(''); }} className="min-h-10 rounded border border-[#D4AF37]/30 px-3 text-xs">Cancelar</button>}
+                              <button type="submit" className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 text-sm text-[#E3D8C6]">Salvar anotação</button>
+                              {editingNoteId && <button type="button" onClick={() => { setEditingNoteId(null); setNoteTitle(''); setNoteContent(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-3 text-xs">Cancelar</button>}
                             </div>
                           </form>
                           <div className="mt-4 space-y-3">
-                            {campaignNotes.map(note => <article key={note.id} className="rounded border border-[#D4AF37]/20 bg-[#12080A]/70 p-3">
-                              <h4 className="font-semibold text-[#F3E5AB]">{note.title}</h4>
-                              <p className="mt-2 whitespace-pre-wrap text-sm text-[#E5D4C0]/80">{note.content}</p>
+                            {campaignNotes.map(note => <article key={note.id} className="rounded border border-[#A88956]/20 bg-[#101113]/70 p-3">
+                              <h4 className="font-semibold text-[#E3D8C6]">{note.title}</h4>
+                              <p className="mt-2 whitespace-pre-wrap text-sm text-[#D0CCC4]/80">{note.content}</p>
                               <div className="mt-2 flex gap-2">
-                                <button type="button" onClick={() => { setEditingNoteId(note.id); setNoteTitle(note.title); setNoteContent(note.content); }} className="min-h-9 rounded border border-[#D4AF37]/30 px-3 text-xs">Editar</button>
+                                <button type="button" onClick={() => { setEditingNoteId(note.id); setNoteTitle(note.title); setNoteContent(note.content); }} className="min-h-9 rounded border border-[#A88956]/30 px-3 text-xs">Editar</button>
                                 <button type="button" onClick={() => handleDeleteNote(note.id)} className="min-h-9 rounded border border-red-800/60 px-3 text-xs text-red-200">Excluir</button>
                               </div>
                             </article>)}
-                            {campaignNotes.length === 0 && <p className="text-sm text-[#E5D4C0]/60">Nenhuma anotação nesta campanha.</p>}
+                            {campaignNotes.length === 0 && <p className="text-sm text-[#D0CCC4]/60">Nenhuma anotação nesta campanha.</p>}
                           </div>
                         </>
-                      ) : <p className="mt-4 text-sm text-[#E5D4C0]/60">{activeRoom?.role === 'gm' ? 'Selecione uma campanha para gerenciar anotações.' : 'As anotações são privadas do mestre.'}</p>}
+                      ) : <p className="mt-4 text-sm text-[#D0CCC4]/60">{activeRoom?.role === 'gm' ? 'Selecione uma campanha para gerenciar anotações.' : 'As anotações são privadas do mestre.'}</p>}
                     </section>
                   </div>
                 </div>
@@ -813,74 +813,79 @@ export function App() {
             ) : activePage === 'characters' ? (
               <section className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-8">
                 <div className="mx-auto max-w-5xl">
-                  <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#D4AF37]/80">{activeRoom?.name || 'Sala'}</p>
-                  <h2 className="mb-6 border-b border-[#D4AF37]/30 pb-4 text-2xl font-bold text-[#F3E5AB]">Fichas de personagem</h2>
-                  <form onSubmit={handleSaveCharacter} className="mb-6 grid gap-3 rounded-lg border border-[#D4AF37]/30 bg-[#1A0A0D] p-4 lg:grid-cols-2">
-                    <h3 className="font-semibold text-[#F3E5AB] lg:col-span-2">{editingCharacterId ? 'Editar ficha' : 'Criar ficha'}</h3>
-                    <label className="text-sm text-[#F3E5AB]">Nome
-                      <input required maxLength={60} value={characterName} onChange={event => setCharacterName(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3" />
+                  <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#A88956]/80">{activeRoom?.name || 'Sala'}</p>
+                  <h2 className="mb-6 border-b border-[#A88956]/30 pb-4 text-2xl font-bold text-[#E3D8C6]">Fichas de personagem</h2>
+                  <form onSubmit={handleSaveCharacter} className="mb-6 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 lg:grid-cols-2">
+                    <h3 className="font-semibold text-[#E3D8C6] lg:col-span-2">{editingCharacterId ? 'Editar ficha' : 'Criar ficha'}</h3>
+                    <label className="text-sm text-[#E3D8C6]">Nome
+                      <input required maxLength={60} value={characterName} onChange={event => setCharacterName(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                     </label>
-                    <label className="text-sm text-[#F3E5AB]">Campanha
-                      <select value={characterCampaignId} onChange={event => setCharacterCampaignId(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3">
+                    <label className="text-sm text-[#E3D8C6]">Campanha
+                      <select value={characterCampaignId} onChange={event => setCharacterCampaignId(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3">
                         <option value="">Sem campanha</option>
                         {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
                       </select>
                     </label>
-                    <label className="text-sm text-[#F3E5AB] lg:col-span-2">Dados JSON da ficha
-                      <textarea required value={characterDataText} onChange={event => setCharacterDataText(event.target.value)} spellCheck={false} className="mt-1 min-h-36 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] p-3 font-mono text-xs" />
+                    <label className="text-sm text-[#E3D8C6] lg:col-span-2">Dados JSON da ficha
+                      <textarea required value={characterDataText} onChange={event => setCharacterDataText(event.target.value)} spellCheck={false} className="mt-1 min-h-36 w-full rounded border border-[#A88956]/40 bg-[#101113] p-3 font-mono text-xs" />
                     </label>
                     <div className="flex gap-2 lg:col-span-2">
-                      <button type="submit" className="min-h-10 rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 font-semibold text-[#F3E5AB]">{editingCharacterId ? 'Salvar ficha' : 'Criar ficha'}</button>
-                      {editingCharacterId && <button type="button" onClick={() => { setEditingCharacterId(null); setCharacterName(''); setCharacterDataText('{}'); setCharacterCampaignId(''); }} className="min-h-10 rounded border border-[#D4AF37]/30 px-4 text-sm">Cancelar</button>}
+                      <button type="submit" className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 font-semibold text-[#E3D8C6]">{editingCharacterId ? 'Salvar ficha' : 'Criar ficha'}</button>
+                      {editingCharacterId && <button type="button" onClick={() => { setEditingCharacterId(null); setCharacterName(''); setCharacterDataText('{}'); setCharacterCampaignId(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-4 text-sm">Cancelar</button>}
                     </div>
                   </form>
                   <div className="grid gap-4 md:grid-cols-2">
-                    {characters.map(character => <article key={character.id} className="rounded-lg border border-[#D4AF37]/25 bg-[#1A0A0D] p-4">
-                      <h3 className="font-semibold text-[#F3E5AB]">{character.name}</h3>
-                      <p className="mt-1 text-xs text-[#E5D4C0]/60">{campaigns.find(campaign => campaign.id === character.campaignId)?.name || 'Sem campanha'} · {character.ownerUserId === user?.id ? 'Sua ficha' : 'Ficha de jogador'}</p>
-                      <pre className="mt-3 max-h-48 overflow-auto rounded bg-[#12080A] p-3 text-xs text-[#E5D4C0]">{JSON.stringify(character.data, null, 2)}</pre>
+                    {characters.map(character => <article key={character.id} className="rounded-lg border border-[#A88956]/25 bg-[#202124] p-4">
+                      <h3 className="font-semibold text-[#E3D8C6]">{character.name}</h3>
+                      <p className="mt-1 text-xs text-[#D0CCC4]/60">{campaigns.find(campaign => campaign.id === character.campaignId)?.name || 'Sem campanha'} · {character.ownerUserId === user?.id ? 'Sua ficha' : 'Ficha de jogador'}</p>
+                      <pre className="mt-3 max-h-48 overflow-auto rounded bg-[#101113] p-3 text-xs text-[#D0CCC4]">{JSON.stringify(character.data, null, 2)}</pre>
                       {(character.ownerUserId === user?.id || activeRoom?.role === 'gm') && <div className="mt-3 flex gap-2">
-                        <button type="button" onClick={() => { setEditingCharacterId(character.id); setCharacterName(character.name); setCharacterDataText(JSON.stringify(character.data, null, 2)); setCharacterCampaignId(character.campaignId || ''); }} className="min-h-9 rounded border border-[#D4AF37]/30 px-3 text-xs">Editar</button>
+                        <button type="button" onClick={() => { setEditingCharacterId(character.id); setCharacterName(character.name); setCharacterDataText(JSON.stringify(character.data, null, 2)); setCharacterCampaignId(character.campaignId || ''); }} className="min-h-9 rounded border border-[#A88956]/30 px-3 text-xs">Editar</button>
                         <button type="button" onClick={() => handleDeleteCharacter(character.id)} className="min-h-9 rounded border border-red-800/60 px-3 text-xs text-red-200">Excluir</button>
                       </div>}
                     </article>)}
-                    {characters.length === 0 && <p className="rounded border border-[#D4AF37]/20 p-4 text-sm text-[#E5D4C0]/70">Você ainda não tem fichas nesta sala.</p>}
+                    {characters.length === 0 && <p className="rounded border border-[#A88956]/20 p-4 text-sm text-[#D0CCC4]/70">Você ainda não tem fichas nesta sala.</p>}
                   </div>
                 </div>
               </section>
             ) : (
               <>
-                <form onSubmit={handleCreateRoom} className="mb-8 grid gap-3 rounded-lg border border-[#D4AF37]/30 bg-[#1A0A0D] p-4 md:grid-cols-[1fr_1fr_auto]">
-                  <label className="text-sm text-[#F3E5AB]">Nome da sala
-                    <input required maxLength={80} value={newRoomName} onChange={event => setNewRoomName(event.target.value)} placeholder="Ex.: Crônicas do Norte" className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3" />
+                <form onSubmit={handleCreateRoom} className="mb-8 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 md:grid-cols-[1fr_1fr_auto]">
+                  <label className="text-sm text-[#E3D8C6]">Nome da sala
+                    <input required maxLength={80} value={newRoomName} onChange={event => setNewRoomName(event.target.value)} placeholder="Ex.: Crônicas do Norte" className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                   </label>
-                  <label className="text-sm text-[#F3E5AB]">Sistema
-                    <input maxLength={60} value={newRoomSystem} onChange={event => setNewRoomSystem(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#D4AF37]/40 bg-[#12080A] px-3" />
+                  <label className="text-sm text-[#E3D8C6]">Sistema
+                    <input maxLength={60} value={newRoomSystem} onChange={event => setNewRoomSystem(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                   </label>
-                  <button disabled={isSubmitting} type="submit" className="mt-5 min-h-11 rounded border border-[#D4AF37]/60 bg-[#58111A] px-5 font-semibold text-[#F3E5AB] disabled:opacity-50">Criar sala pública</button>
+                  <button disabled={isSubmitting} type="submit" className="mt-5 min-h-11 rounded border border-[#A88956]/60 bg-[#542126] px-5 font-semibold text-[#E3D8C6] disabled:opacity-50">Criar sala pública</button>
                 </form>
-                <label htmlFor="room-search" className="mb-2 block text-sm text-[#F3E5AB]">Buscar nas salas públicas</label>
-                <input id="room-search" type="search" value={roomSearch} onChange={event => setRoomSearch(event.target.value)} placeholder="Nome, sistema ou descrição" className="mb-6 w-full max-w-lg rounded border border-[#D4AF37]/40 bg-[#16080A] px-3 py-3 text-sm text-[#E5D4C0] placeholder:text-[#E5D4C0]/40 focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30" />
-                <div className="grid gap-4 md:grid-cols-2">
+                <label htmlFor="room-search" className="mb-2 block text-sm text-[#E3D8C6]">Buscar nas salas públicas</label>
+                <input id="room-search" type="search" value={roomSearch} onChange={event => setRoomSearch(event.target.value)} placeholder="Nome, sistema ou descrição" className="mb-6 w-full max-w-lg rounded border border-[#A88956]/40 bg-[#191A1D] px-3 py-3 text-sm text-[#D0CCC4] placeholder:text-[#D0CCC4]/40 focus:border-[#A88956] focus:outline-none focus:ring-2 focus:ring-[#A88956]/30" />
+                <div className="space-y-2">
                   {visibleRooms.map(room => (
-                    <article key={room.id} className="rounded-lg border border-[#D4AF37]/30 bg-[#1A0A0D] p-5">
+                    <article key={room.id} className="rounded border border-[#A88956]/25 bg-[#202124] p-3 transition hover:border-[#A88956]/60">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          {room.isDemo && <p className="mb-1 text-[10px] uppercase tracking-widest text-amber-300">Demonstração pública</p>}
-                          <h3 className="text-lg font-semibold text-[#F3E5AB]">{room.name}</h3>
-                          <p className="mt-1 text-xs text-[#D4AF37]">{room.gameSystem}</p>
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded border border-[#A88956]/25 bg-[#101113] sm:flex" aria-hidden="true">
+                            <Dices className="h-5 w-5 text-[#A88956]" />
+                          </div>
+                          <div className="min-w-0">
+                            {room.isDemo && <p className="mb-1 text-[10px] uppercase tracking-widest text-amber-300">Demonstração pública</p>}
+                            <h3 className="text-lg font-semibold text-[#E3D8C6]">{room.name}</h3>
+                            <p className="mt-1 text-xs text-[#A88956]">{room.gameSystem}</p>
+                            {room.description && <p className="mt-1 text-sm text-[#D0CCC4]/70">{room.description}</p>}
+                          </div>
                         </div>
-                        <span className="shrink-0 rounded border border-[#D4AF37]/20 px-2 py-1 text-xs text-[#E5D4C0]/70">{room.role || 'Pública'}</span>
+                        <span className="shrink-0 rounded border border-[#A88956]/20 px-2 py-1 text-xs text-[#D0CCC4]/70">{room.role || 'Pública'}</span>
                       </div>
-                      {room.description && <p className="mt-3 text-sm text-[#E5D4C0]/70">{room.description}</p>}
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <span className="text-xs text-[#E5D4C0]/60">{room.memberCount} membro(s)</span>
-                        <button disabled={isSubmitting} type="button" onClick={() => room.role ? (setActiveRoomId(room.id), setActivePage('room')) : handleJoinRoom(room)} className="min-h-10 rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 text-sm font-semibold text-[#F3E5AB] disabled:opacity-50">{room.role ? 'Abrir sala' : 'Entrar na sala'}</button>
+                      <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#A88956]/15 pt-2">
+                        <span className="text-xs text-[#D0CCC4]/60">{room.memberCount} membro(s)</span>
+                        <button disabled={isSubmitting} type="button" onClick={() => room.role ? (setActiveRoomId(room.id), setActivePage('room')) : handleJoinRoom(room)} className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 text-sm font-semibold text-[#E3D8C6] disabled:opacity-50">{room.role ? 'Abrir sala' : 'Entrar na sala'}</button>
                       </div>
                     </article>
                   ))}
                 </div>
-                {visibleRooms.length === 0 && <p className="rounded border border-[#D4AF37]/20 bg-[#1A0A0D] p-5 text-sm text-[#E5D4C0]/70">{rooms.length === 0 ? 'Nenhuma sala disponível.' : 'Nenhuma sala corresponde à busca.'}</p>}
+                {visibleRooms.length === 0 && <p className="rounded border border-[#A88956]/20 bg-[#202124] p-5 text-sm text-[#D0CCC4]/70">{rooms.length === 0 ? 'Nenhuma sala disponível.' : 'Nenhuma sala corresponde à busca.'}</p>}
               </>
             )}
           </div>
@@ -889,13 +894,25 @@ export function App() {
       <>
       <div className="flex min-h-0 flex-1 overflow-hidden">
         {/* Left Sidebar: Participants & Characters */}
-        <aside className={`${mobilePanel === 'library' ? 'flex' : 'hidden'} w-full shrink-0 flex-col bg-[#1A0A0D] md:flex md:w-72 md:border-r md:border-[#D4AF37]/20`}>
-          <div className="p-4 border-b border-[#D4AF37]/20 bg-[#220D11]">
-            <h2 className="text-sm font-semibold tracking-wider text-[#D4AF37] uppercase flex items-center space-x-2">
-              <Users className="w-4 h-4" />
-              <span>Tokens da sala{activeRoom?.isDemo ? ' · demonstração' : ''}</span>
+        <aside className={`${mobilePanel === 'library' ? 'flex' : 'hidden'} w-full shrink-0 flex-col bg-[#202124] md:flex md:w-64 md:border-r md:border-[#A88956]/20`}>
+          <div className="p-4 border-b border-[#A88956]/20 bg-[#292A2E]">
+            <h2 className="text-sm font-semibold tracking-wider text-[#A88956] uppercase flex items-center space-x-2">
+              <Compass className="w-4 h-4" />
+              <span>Biblioteca</span>
             </h2>
-            <p className="mt-1 text-xs text-[#E5D4C0]/60">Membros online não são inferidos pelo mapa.</p>
+            <p className="mt-1 text-xs text-[#D0CCC4]/60">{activeRoom?.name || 'Sala'}{activeRoom?.isDemo ? ' · demonstração' : ''}</p>
+          </div>
+          <nav aria-label="Biblioteca da mesa" className="space-y-1 border-b border-[#A88956]/20 p-2">
+            <button type="button" onClick={() => setActivePage('campaigns')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E]">
+              <Home className="h-4 w-4" aria-hidden="true" /> Campanhas <span className="ml-auto text-[#A88956]">{campaigns.length}</span>
+            </button>
+            <button type="button" onClick={() => setActivePage('characters')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E]">
+              <Users className="h-4 w-4" aria-hidden="true" /> Fichas <span className="ml-auto text-[#A88956]">{characters.length}</span>
+            </button>
+          </nav>
+          <div className="flex items-center justify-between border-b border-[#A88956]/15 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[#A88956]/80">
+            <span>Tokens da sala</span>
+            <span>{tokens.length}</span>
           </div>
           <div className="flex-1 overflow-y-auto p-3 space-y-2">
             {tokens.map(token => (
@@ -904,62 +921,62 @@ export function App() {
                 key={token.id}
                 onClick={() => setSelectedTokenId(token.id)}
                 aria-pressed={selectedTokenId === token.id}
-                className={`w-full rounded border p-3 text-left transition ${selectedTokenId === token.id ? 'bg-[#58111A]/40 border-[#D4AF37]' : 'bg-[#12080A]/60 border-[#D4AF37]/20 hover:border-[#D4AF37]/50'}`}
+                className={`w-full rounded border p-3 text-left transition ${selectedTokenId === token.id ? 'bg-[#542126]/40 border-[#A88956]' : 'bg-[#101113]/60 border-[#A88956]/20 hover:border-[#A88956]/50'}`}
               >
                 <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-[#F3E5AB]">{token.name}</span>
+                  <span className="font-bold text-sm text-[#E3D8C6]">{token.name}</span>
                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: token.color }}></span>
                 </div>
-                <div className="text-xs text-[#E5D4C0]/70 mb-2">Pos: ({token.x}, {token.y})</div>
+                <div className="text-xs text-[#D0CCC4]/70 mb-2">Pos: ({token.x}, {token.y})</div>
                 <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-black/60 rounded-full h-2 border border-[#D4AF37]/30 overflow-hidden">
+                  <div className="flex-1 bg-black/60 rounded-full h-2 border border-[#A88956]/30 overflow-hidden">
                     <div 
                       className="bg-emerald-600 h-full transition-all duration-300"
                       style={{ width: `${(token.hp / token.maxHp) * 100}%` }}
                     ></div>
                   </div>
-                  <span className="text-xs font-mono text-[#D4AF37]">{token.hp}/{token.maxHp} HP</span>
+                  <span className="text-xs font-mono text-[#A88956]">{token.hp}/{token.maxHp} HP</span>
                 </div>
               </button>
             ))}
-            {tokens.length === 0 && <p className="rounded border border-[#D4AF37]/20 p-3 text-xs text-[#E5D4C0]/60">Esta sala ainda não tem tokens no mapa.</p>}
+            {tokens.length === 0 && <p className="rounded border border-[#A88956]/20 p-3 text-xs text-[#D0CCC4]/60">Esta sala ainda não tem tokens no mapa.</p>}
           </div>
 
-          <div className="p-3 border-t border-[#D4AF37]/20 bg-[#16080A]">
-            <div className="mb-2 text-xs uppercase tracking-wider text-[#D4AF37]/70">Controles rápidos do token</div>
+          <div className="p-3 border-t border-[#A88956]/20 bg-[#191A1D]">
+            <div className="mb-2 text-xs uppercase tracking-wider text-[#A88956]/70">Controles rápidos do token</div>
             {selectedTokenId && activeRoom?.role === 'gm' && (
               <div className="grid grid-cols-3 gap-1">
                 <div></div>
-                <button type="button" aria-label="Mover token para cima" onClick={() => moveToken(selectedTokenId, 0, -1)} className="rounded border border-[#D4AF37]/40 bg-[#58111A] p-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#6D1621]">▲</button>
+                <button type="button" aria-label="Mover token para cima" onClick={() => moveToken(selectedTokenId, 0, -1)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▲</button>
                 <div></div>
-                <button type="button" aria-label="Mover token para a esquerda" onClick={() => moveToken(selectedTokenId, -1, 0)} className="rounded border border-[#D4AF37]/40 bg-[#58111A] p-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#6D1621]">◀</button>
-                <div className="flex items-center justify-center text-xs text-[#D4AF37]">Mover</div>
-                <button type="button" aria-label="Mover token para a direita" onClick={() => moveToken(selectedTokenId, 1, 0)} className="rounded border border-[#D4AF37]/40 bg-[#58111A] p-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#6D1621]">▶</button>
+                <button type="button" aria-label="Mover token para a esquerda" onClick={() => moveToken(selectedTokenId, -1, 0)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">◀</button>
+                <div className="flex items-center justify-center text-xs text-[#A88956]">Mover</div>
+                <button type="button" aria-label="Mover token para a direita" onClick={() => moveToken(selectedTokenId, 1, 0)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▶</button>
                 <div></div>
-                <button type="button" aria-label="Mover token para baixo" onClick={() => moveToken(selectedTokenId, 0, 1)} className="rounded border border-[#D4AF37]/40 bg-[#58111A] p-1.5 text-xs font-bold text-[#D4AF37] hover:bg-[#6D1621]">▼</button>
+                <button type="button" aria-label="Mover token para baixo" onClick={() => moveToken(selectedTokenId, 0, 1)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▼</button>
                 <div></div>
               </div>
             )}
-            {selectedTokenId && activeRoom?.role !== 'gm' && <p className="text-xs text-[#E5D4C0]/60">Somente o mestre pode mover tokens nesta versão.</p>}
+            {selectedTokenId && activeRoom?.role !== 'gm' && <p className="text-xs text-[#D0CCC4]/60">Somente o mestre pode mover tokens nesta versão.</p>}
           </div>
         </aside>
 
         {/* Center: Tactical Map Grid */}
-        <main className={`${mobilePanel === 'map' ? 'flex' : 'hidden'} relative min-w-0 flex-1 flex-col overflow-hidden bg-[#0D0507] md:flex`}>
-          <div className="absolute inset-0 bg-[radial-gradient(#3a0e14_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
+        <main className={`${mobilePanel === 'map' ? 'flex' : 'hidden'} relative min-w-0 flex-1 flex-col overflow-hidden bg-[#101113] md:flex`}>
+          <div className="absolute inset-0 bg-[radial-gradient(#35373A_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
           
           <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-2 sm:p-6">
-            <div className="w-full max-w-[560px] rounded-lg border-2 border-[#D4AF37]/50 bg-[#16080A]/90 p-2 shadow-2xl backdrop-blur sm:p-4">
+            <div className="w-full max-w-[560px] rounded-lg border-2 border-[#A88956]/50 bg-[#191A1D]/90 p-2 shadow-2xl backdrop-blur sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-1 px-1 sm:px-2">
-                <div className="text-sm font-semibold text-[#D4AF37] flex items-center space-x-2">
+                <div className="text-sm font-semibold text-[#A88956] flex items-center space-x-2">
                   <Compass className="w-4 h-4" />
                   <span>{activeRoom?.name || 'Sala'}</span>
                 </div>
-                <div className="text-xs text-[#E5D4C0]/60 font-mono">Grade 12 × 12</div>
+                <div className="text-xs text-[#D0CCC4]/60 font-mono">Grade 12 × 12</div>
               </div>
 
               <div 
-                className="grid w-full gap-0.5 rounded border border-[#D4AF37]/30 bg-[#12080A] p-1 sm:gap-1 sm:p-2"
+                className="grid w-full gap-0.5 rounded border border-[#A88956]/30 bg-[#101113] p-1 sm:gap-1 sm:p-2"
                 style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
               >
                 {Array.from({ length: gridSize * gridSize }).map((_, idx) => {
@@ -977,11 +994,11 @@ export function App() {
                       }}
                       disabled={activeRoom?.role !== 'gm'}
                       aria-label={`Mover token para coluna ${x + 1}, linha ${y + 1}`}
-                      className="relative flex aspect-square min-w-0 cursor-pointer items-center justify-center border border-[#D4AF37]/10 bg-[#1A0A0D]/50 p-0 transition hover:border-[#D4AF37]/60 hover:bg-[#2A1116] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#D4AF37]"
+                      className="relative flex aspect-square min-w-0 cursor-pointer items-center justify-center border border-[#A88956]/10 bg-[#202124]/50 p-0 transition hover:border-[#A88956]/60 hover:bg-[#34363A] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#A88956]"
                     >
                       {tokenAtPos && (
                         <div 
-                          className="flex h-5 w-5 items-center justify-center rounded-full border border-[#F3E5AB] text-[9px] font-bold shadow-lg sm:h-8 sm:w-8 sm:border-2 sm:text-xs"
+                          className="flex h-5 w-5 items-center justify-center rounded-full border border-[#E3D8C6] text-[9px] font-bold shadow-lg sm:h-8 sm:w-8 sm:border-2 sm:text-xs"
                           style={{ backgroundColor: tokenAtPos.color }}
                           title={tokenAtPos.name}
                         >
@@ -997,25 +1014,25 @@ export function App() {
         </main>
 
         {/* Right Sidebar: Chat, Dice & Logs */}
-        <section className={`${mobilePanel === 'chat' || mobilePanel === 'dice' || mobilePanel === 'members' ? 'flex' : 'hidden'} min-w-0 w-full flex-col bg-[#1A0A0D] md:flex md:w-80 md:border-l md:border-[#D4AF37]/20`}>
-          <div className="flex border-b border-[#D4AF37]/20 bg-[#220D11]">
+        <section className={`${mobilePanel === 'chat' || mobilePanel === 'dice' || mobilePanel === 'members' ? 'flex' : 'hidden'} min-w-0 w-full flex-col bg-[#202124] md:flex md:w-80 md:border-l md:border-[#A88956]/20`}>
+          <div className="flex border-b border-[#A88956]/20 bg-[#292A2E]">
             <button 
               onClick={() => { setActiveTab('chat'); setMobilePanel('chat'); }}
-              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition ${activeTab === 'chat' ? 'bg-[#58111A] text-[#F3E5AB] border-b-2 border-[#D4AF37]' : 'text-[#E5D4C0]/60 hover:text-[#E5D4C0]'}`}
+              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition ${activeTab === 'chat' ? 'bg-[#542126] text-[#E3D8C6] border-b-2 border-[#A88956]' : 'text-[#D0CCC4]/60 hover:text-[#D0CCC4]'}`}
             >
               <MessageSquare className="w-3.5 h-3.5" />
               <span>Chat</span>
             </button>
             <button 
               onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }}
-              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition ${activeTab === 'dice' ? 'bg-[#58111A] text-[#F3E5AB] border-b-2 border-[#D4AF37]' : 'text-[#E5D4C0]/60 hover:text-[#E5D4C0]'}`}
+              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition ${activeTab === 'dice' ? 'bg-[#542126] text-[#E3D8C6] border-b-2 border-[#A88956]' : 'text-[#D0CCC4]/60 hover:text-[#D0CCC4]'}`}
             >
               <Dices className="w-3.5 h-3.5" />
               <span>Dados</span>
             </button>
             <button
               onClick={() => { setActiveTab('members'); setMobilePanel('members'); }}
-              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1 transition ${activeTab === 'members' ? 'bg-[#58111A] text-[#F3E5AB] border-b-2 border-[#D4AF37]' : 'text-[#E5D4C0]/60 hover:text-[#E5D4C0]'}`}
+              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1 transition ${activeTab === 'members' ? 'bg-[#542126] text-[#E3D8C6] border-b-2 border-[#A88956]' : 'text-[#D0CCC4]/60 hover:text-[#D0CCC4]'}`}
             >
               <Users className="h-3.5 w-3.5" />
               <span>Membros</span>
@@ -1026,47 +1043,47 @@ export function App() {
             <div className="flex-1 flex flex-col overflow-hidden">
               <div className="flex-1 overflow-y-auto p-3 space-y-3">
                 {messages.map(msg => (
-                  <div key={msg.id} className="p-2.5 rounded bg-[#12080A]/80 border border-[#D4AF37]/20 shadow-sm">
+                  <div key={msg.id} className="p-2.5 rounded bg-[#101113]/80 border border-[#A88956]/20 shadow-sm">
                     <div className="flex items-center justify-between text-xs mb-1">
-                      <span className="font-bold text-[#D4AF37]">{msg.user}</span>
-                      <span className="text-[#E5D4C0]/40 font-mono text-[10px]">{msg.time}</span>
+                      <span className="font-bold text-[#A88956]">{msg.user}</span>
+                      <span className="text-[#D0CCC4]/40 font-mono text-[10px]">{msg.time}</span>
                     </div>
-                    <p className="text-xs text-[#E5D4C0]">{msg.text}</p>
+                    <p className="text-xs text-[#D0CCC4]">{msg.text}</p>
                   </div>
                 ))}
               </div>
-              <form onSubmit={handleSendMessage} className="p-3 border-t border-[#D4AF37]/20 bg-[#16080A] flex space-x-2">
+              <form onSubmit={handleSendMessage} className="p-3 border-t border-[#A88956]/20 bg-[#191A1D] flex space-x-2">
                 <input 
                   type="text" 
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
-                  aria-label="Mensagem de demonstração"
+                  aria-label="Mensagem da sala"
                   maxLength={500}
-                  placeholder="Escreva uma mensagem de demonstração..."
-                  className="min-w-0 flex-1 rounded border border-[#D4AF37]/40 bg-[#12080A] px-3 py-2 text-xs text-[#E5D4C0] focus:border-[#D4AF37] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30"
+                  placeholder="Escreva uma mensagem..."
+                  className="min-w-0 flex-1 rounded border border-[#A88956]/40 bg-[#101113] px-3 py-2 text-xs text-[#D0CCC4] focus:border-[#A88956] focus:outline-none focus:ring-2 focus:ring-[#A88956]/30"
                 />
-                <button type="submit" aria-label="Enviar mensagem" className="flex min-h-10 min-w-10 items-center justify-center rounded border border-[#D4AF37]/50 bg-[#58111A] px-3 text-[#D4AF37] transition hover:bg-[#6D1621]">
+                <button type="submit" aria-label="Enviar mensagem" className="flex min-h-10 min-w-10 items-center justify-center rounded border border-[#A88956]/50 bg-[#542126] px-3 text-[#A88956] transition hover:bg-[#722E34]">
                   <Send className="h-3.5 w-3.5" aria-hidden="true" />
                 </button>
               </form>
             </div>
           ) : activeTab === 'dice' ? (
             <div className="flex-1 flex flex-col overflow-hidden p-3 space-y-4">
-              <div className="bg-[#12080A] p-3 rounded border border-[#D4AF37]/30 space-y-3">
-                <div className="text-xs font-semibold uppercase tracking-wider text-[#D4AF37]">Rolagem demonstrativa</div>
+              <div className="bg-[#101113] p-3 rounded border border-[#A88956]/30 space-y-3">
+                <div className="text-xs font-semibold uppercase tracking-wider text-[#A88956]">Rolar dados</div>
                 <div className="flex space-x-2">
                   <input 
                     type="text" 
                     value={diceExpr} 
                     onChange={(e) => setDiceExpr(e.target.value)}
                     aria-label="Expressão de dados"
-                    className="flex-1 bg-[#16080A] border border-[#D4AF37]/40 rounded px-2 py-1.5 text-xs font-mono text-[#E5D4C0]"
+                    className="flex-1 bg-[#191A1D] border border-[#A88956]/40 rounded px-2 py-1.5 text-xs font-mono text-[#D0CCC4]"
                     placeholder="1d20"
                   />
                   <button 
                     type="button"
                     onClick={() => handleRollDice(diceExpr)}
-                    className="min-h-10 rounded border border-[#D4AF37]/60 bg-[#58111A] px-4 py-1.5 text-xs font-bold text-[#F3E5AB] shadow transition hover:bg-[#6D1621]"
+                    className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 py-1.5 text-xs font-bold text-[#E3D8C6] shadow transition hover:bg-[#722E34]"
                   >
                     Rolar
                   </button>
@@ -1077,7 +1094,7 @@ export function App() {
                       type="button"
                       key={expr}
                       onClick={() => handleRollDice(expr)}
-                      className="py-1 bg-[#1A0A0D] hover:bg-[#58111A]/60 border border-[#D4AF37]/30 rounded text-[11px] font-mono text-[#D4AF37] transition"
+                      className="py-1 bg-[#202124] hover:bg-[#542126]/60 border border-[#A88956]/30 rounded text-[11px] font-mono text-[#A88956] transition"
                     >
                       {expr}
                     </button>
@@ -1086,15 +1103,15 @@ export function App() {
               </div>
 
               <div className="flex flex-1 flex-col overflow-hidden">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#D4AF37]">Histórico demonstrativo</div>
+                <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#A88956]">Histórico da sala</div>
                 <div className="flex-1 space-y-2 overflow-y-auto pr-1">
                   {diceRolls.map(roll => (
-                    <div key={roll.id} className="flex items-center justify-between rounded border border-[#D4AF37]/20 bg-[#12080A]/80 p-2.5">
+                    <div key={roll.id} className="flex items-center justify-between rounded border border-[#A88956]/20 bg-[#101113]/80 p-2.5">
                       <div>
-                        <div className="text-xs font-bold text-[#F3E5AB]">{roll.user} <span className="font-normal text-[#E5D4C0]/60">({roll.expression})</span></div>
-                        <div className="text-[10px] text-[#E5D4C0]/50">{roll.time}</div>
+                        <div className="text-xs font-bold text-[#E3D8C6]">{roll.user} <span className="font-normal text-[#D0CCC4]/60">({roll.expression})</span></div>
+                        <div className="text-[10px] text-[#D0CCC4]/50">{roll.time}</div>
                       </div>
-                      <div className="rounded border border-[#D4AF37]/40 bg-[#58111A]/60 px-2.5 py-1 text-xs font-mono font-bold text-[#D4AF37]">{roll.total}</div>
+                      <div className="rounded border border-[#A88956]/40 bg-[#542126]/60 px-2.5 py-1 text-xs font-mono font-bold text-[#A88956]">{roll.total}</div>
                     </div>
                   ))}
                 </div>
@@ -1102,20 +1119,20 @@ export function App() {
             </div>
           ) : (
             <div className="flex-1 space-y-3 overflow-y-auto p-3">
-              <p className="text-xs text-[#E5D4C0]/60">Membros cadastrados nesta sala; presença em tempo real ainda não é exibida.</p>
+              <p className="text-xs text-[#D0CCC4]/60">Membros cadastrados nesta sala; presença em tempo real ainda não é exibida.</p>
               {roomMembers.map(member => (
-                <article key={member.id} className="rounded border border-[#D4AF37]/20 bg-[#12080A]/80 p-3">
+                <article key={member.id} className="rounded border border-[#A88956]/20 bg-[#101113]/80 p-3">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-[#F3E5AB]">{member.username}</span>
-                    <span className="shrink-0 rounded border border-[#D4AF37]/30 px-2 py-1 text-[10px] uppercase text-[#D4AF37]">{member.role === 'gm' ? 'Mestre' : 'Jogador'}</span>
+                    <span className="truncate text-sm font-semibold text-[#E3D8C6]">{member.username}</span>
+                    <span className="shrink-0 rounded border border-[#A88956]/30 px-2 py-1 text-[10px] uppercase text-[#A88956]">{member.role === 'gm' ? 'Mestre' : 'Jogador'}</span>
                   </div>
                   {member.mutedUntil && member.mutedUntil > new Date().toISOString() && <p className="mt-2 text-xs text-amber-200">Silenciado até {new Date(member.mutedUntil).toLocaleTimeString()}.</p>}
                   {activeRoom?.role === 'gm' && member.role === 'player' && (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {member.mutedUntil ? (
-                        <button type="button" onClick={() => handleModeration(member, 'unmute')} className="min-h-9 rounded border border-[#D4AF37]/30 px-2 text-xs text-[#E5D4C0]">Remover silêncio</button>
+                        <button type="button" onClick={() => handleModeration(member, 'unmute')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#D0CCC4]">Remover silêncio</button>
                       ) : (
-                        <button type="button" onClick={() => handleModeration(member, 'mute')} className="min-h-9 rounded border border-[#D4AF37]/30 px-2 text-xs text-[#E5D4C0]">Silenciar 10 min</button>
+                        <button type="button" onClick={() => handleModeration(member, 'mute')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#D0CCC4]">Silenciar 10 min</button>
                       )}
                       <button type="button" onClick={() => handleModeration(member, 'kick')} className="min-h-9 rounded border border-red-800/60 px-2 text-xs text-red-200">Remover</button>
                       <button type="button" onClick={() => handleModeration(member, 'ban')} className="min-h-9 rounded border border-red-800/60 px-2 text-xs text-red-200">Banir</button>
@@ -1123,14 +1140,14 @@ export function App() {
                   )}
                 </article>
               ))}
-              {roomMembers.length === 0 && <p className="rounded border border-[#D4AF37]/20 p-3 text-xs text-[#E5D4C0]/60">Lista de membros vazia.</p>}
+              {roomMembers.length === 0 && <p className="rounded border border-[#A88956]/20 p-3 text-xs text-[#D0CCC4]/60">Lista de membros vazia.</p>}
               {activeRoom?.role === 'gm' && bannedMembers.length > 0 && (
-                <section className="mt-6 border-t border-[#D4AF37]/20 pt-4">
+                <section className="mt-6 border-t border-[#A88956]/20 pt-4">
                   <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-200">Banidos</h3>
                   {bannedMembers.map(member => (
                     <div key={member.id} className="mb-2 flex items-center justify-between gap-2 rounded border border-red-900/50 p-2">
                       <span className="truncate text-xs">{member.username}</span>
-                      <button type="button" onClick={() => handleModeration(member, 'unban')} className="min-h-9 rounded border border-[#D4AF37]/30 px-2 text-xs text-[#D4AF37]">Desbanir</button>
+                      <button type="button" onClick={() => handleModeration(member, 'unban')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#A88956]">Desbanir</button>
                     </div>
                   ))}
                 </section>
@@ -1139,12 +1156,12 @@ export function App() {
           )}
         </section>
       </div>
-      <nav aria-label="Painéis da sala" className="grid shrink-0 grid-cols-5 border-t border-[#D4AF37]/30 bg-[#16080A] p-1 md:hidden">
-        <button type="button" onClick={() => setMobilePanel('map')} aria-current={mobilePanel === 'map' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'map' ? 'text-[#F3E5AB]' : 'text-[#E5D4C0]/60'}`}><Compass className="h-4 w-4" aria-hidden="true" />Mapa</button>
-        <button type="button" onClick={() => setMobilePanel('library')} aria-current={mobilePanel === 'library' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'library' ? 'text-[#F3E5AB]' : 'text-[#E5D4C0]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Tokens</button>
-        <button type="button" onClick={() => { setActiveTab('chat'); setMobilePanel('chat'); }} aria-current={mobilePanel === 'chat' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'chat' ? 'text-[#F3E5AB]' : 'text-[#E5D4C0]/60'}`}><MessageSquare className="h-4 w-4" aria-hidden="true" />Chat</button>
-        <button type="button" onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }} aria-current={mobilePanel === 'dice' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'dice' ? 'text-[#F3E5AB]' : 'text-[#E5D4C0]/60'}`}><Dices className="h-4 w-4" aria-hidden="true" />Dados</button>
-        <button type="button" onClick={() => { setActiveTab('members'); setMobilePanel('members'); }} aria-current={mobilePanel === 'members' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'members' ? 'text-[#F3E5AB]' : 'text-[#E5D4C0]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Pessoas</button>
+      <nav aria-label="Painéis da sala" className="grid shrink-0 grid-cols-5 border-t border-[#A88956]/30 bg-[#191A1D] p-1">
+        <button type="button" onClick={() => { setActivePage('room'); setMobilePanel('map'); }} aria-current={mobilePanel === 'map' ? 'page' : undefined} className={`flex min-h-11 flex-col items-center justify-center gap-1 rounded text-[10px] sm:text-xs ${mobilePanel === 'map' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Compass className="h-4 w-4" aria-hidden="true" />Jogo</button>
+        <button type="button" onClick={() => { setActivePage('room'); setMobilePanel('library'); }} aria-current={mobilePanel === 'library' ? 'page' : undefined} className={`flex min-h-11 flex-col items-center justify-center gap-1 rounded text-[10px] sm:text-xs ${mobilePanel === 'library' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Biblioteca</button>
+        <button type="button" onClick={() => { setActiveTab('chat'); setMobilePanel('chat'); }} aria-current={mobilePanel === 'chat' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'chat' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><MessageSquare className="h-4 w-4" aria-hidden="true" />Chat</button>
+        <button type="button" onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }} aria-current={mobilePanel === 'dice' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'dice' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Dices className="h-4 w-4" aria-hidden="true" />Dados</button>
+        <button type="button" onClick={() => { setActiveTab('members'); setMobilePanel('members'); }} aria-current={mobilePanel === 'members' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'members' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Pessoas</button>
       </nav>
       </>
       )}

@@ -4,45 +4,8 @@ const http = require('node:http');
 const path = require('node:path');
 const { WebSocketServer, WebSocket } = require('ws');
 const cors = require('cors');
-const {
-  addRoomBan,
-  createCampaign,
-  createCampaignNote,
-  createCharacter,
-  createRoom,
-  createSession,
-  createStore,
-  deleteSession,
-  deleteCampaign,
-  deleteCampaignNote,
-  deleteCharacter,
-  getCampaign,
-  getCampaignNote,
-  getCharacter,
-  findUserById,
-  findUserByUsername,
-  getRoom,
-  getRoomBannedUser,
-  getRoomMembership,
-  getSessionUser,
-  insertModerationEvent,
-  insertUser,
-  joinRoom,
-  listRoomBans,
-  listRoomMembers,
-  listRoomsForUser,
-  listCampaignNotes,
-  listCampaigns,
-  listCharacters,
-  loadRoomState,
-  persistRoomState,
-  removeRoomBan,
-  removeRoomMember,
-  setRoomMute,
-  updateCampaign,
-  updateCampaignNote,
-  updateCharacter
-} = require('./store');
+const { createSqliteStore } = require('./store');
+const { createPostgresStore } = require('./postgres-store');
 const {
   clearSessionCookie,
   hashPassword,
@@ -106,6 +69,10 @@ function rollDice(expression, randomInt = crypto.randomInt) {
   const rolls = Array.from({ length: parsed.count }, () => randomInt(1, parsed.sides + 1));
   const result = rolls.reduce((sum, value) => sum + value, 0);
   return { rolls, result, total: result + parsed.modifier };
+}
+
+function asyncHandler(handler) {
+  return (request, response, next) => Promise.resolve(handler(request, response, next)).catch(next);
 }
 
 function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.randomInt, actor = null) {
@@ -184,10 +151,11 @@ function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.
   }
 }
 
-function createAppServer(options = {}) {
+async function createAppServer(options = {}) {
   const app = express();
   const server = http.createServer(app);
-  const webServerOrigin = options.webOrigin || process.env.WEB_ORIGIN || 'http://127.0.0.1:3000';
+  const railwayOrigin = process.env.RAILWAY_PUBLIC_DOMAIN ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : null;
+  const webServerOrigin = options.webOrigin || process.env.WEB_ORIGIN || railwayOrigin || 'http://127.0.0.1:3000';
   const allowedOrigins = new Set([webServerOrigin]);
   if (process.env.NODE_ENV !== 'production') {
     allowedOrigins.add('http://localhost:3000');
@@ -209,27 +177,38 @@ function createAppServer(options = {}) {
     next();
   });
 
-  const db = createStore(options.dbPath);
+  const connectionString = options.databaseUrl || process.env.DATABASE_URL;
+  if (process.env.NODE_ENV === 'production' && !connectionString) {
+    throw new Error('DATABASE_URL é obrigatória em produção.');
+  }
+  const db = connectionString
+    ? await createPostgresStore(connectionString)
+    : createSqliteStore(options.dbPath);
   const rateLimitBuckets = new Map();
-  if (!loadRoomState(db, DEMO_ROOM_ID)) persistRoomState(db, DEMO_ROOM_ID, createInitialState());
+  if (!await db.loadRoomState(DEMO_ROOM_ID)) await db.persistRoomState(DEMO_ROOM_ID, createInitialState());
   const roomStates = new Map();
+  const roomQueues = new Map();
   const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 });
   const secureCookies = process.env.NODE_ENV === 'production' || options.secureCookies === true;
 
-  function getAuthenticatedUser(request) {
+  async function getAuthenticatedUser(request) {
     const token = readSessionToken(request);
     if (!token) return null;
-    return getSessionUser(db, hashSessionToken(token));
+    return db.getSessionUser(hashSessionToken(token));
   }
 
-  function requireAuth(request, response, next) {
-    const user = getAuthenticatedUser(request);
-    if (!user) {
-      response.status(401).json({ error: 'Autenticação necessária.' });
-      return;
+  async function requireAuth(request, response, next) {
+    try {
+      const user = await getAuthenticatedUser(request);
+      if (!user) {
+        response.status(401).json({ error: 'Autenticação necessária.' });
+        return;
+      }
+      request.user = user;
+      next();
+    } catch (error) {
+      next(error);
     }
-    request.user = user;
-    next();
   }
 
   function rateLimit(keyPrefix, limit, windowMs, keySelector = request => request.ip) {
@@ -252,9 +231,9 @@ function createAppServer(options = {}) {
     };
   }
 
-  function getAuthorizedMembership(roomId, userId) {
-    if (!getRoom(db, roomId) || getRoomBannedUser(db, roomId, userId)) return null;
-    return getRoomMembership(db, roomId, userId) || null;
+  async function getAuthorizedMembership(roomId, userId) {
+    if (!await db.getRoom(roomId) || await db.getRoomBannedUser(roomId, userId)) return null;
+    return await db.getRoomMembership(roomId, userId) || null;
   }
 
   function validCampaignFields(body) {
@@ -264,7 +243,7 @@ function createAppServer(options = {}) {
     return { name, description };
   }
 
-  function validCharacterFields(body, roomId) {
+  async function validCharacterFields(body, roomId) {
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     const data = body?.data === undefined ? {} : body.data;
     const campaignId = body?.campaignId || null;
@@ -272,22 +251,33 @@ function createAppServer(options = {}) {
     if (campaignId !== null && typeof campaignId !== 'string') return null;
     if (Buffer.byteLength(JSON.stringify(data), 'utf8') > 12000) return null;
     if (campaignId) {
-      const campaign = getCampaign(db, campaignId);
+      const campaign = await db.getCampaign(campaignId);
       if (!campaign || campaign.roomId !== roomId) return null;
     }
     return { name, data, campaignId };
   }
 
-  function getRoomState(roomId) {
+  async function getRoomState(roomId) {
     if (!roomStates.has(roomId)) {
-      roomStates.set(roomId, loadRoomState(db, roomId) || createEmptyRoomState());
+      roomStates.set(roomId, await db.loadRoomState(roomId) || createEmptyRoomState());
     }
     return roomStates.get(roomId);
   }
 
-  function sendSession(user, request, response) {
+  async function enqueueRoomMutation(roomId, operation) {
+    const previous = roomQueues.get(roomId) || Promise.resolve();
+    const current = previous.catch(() => {}).then(operation);
+    roomQueues.set(roomId, current);
+    try {
+      return await current;
+    } finally {
+      if (roomQueues.get(roomId) === current) roomQueues.delete(roomId);
+    }
+  }
+
+  async function sendSession(user, request, response) {
     const session = newSessionRecord(user.id);
-    createSession(db, session);
+    await db.createSession(session);
     response.setHeader('Set-Cookie', sessionCookie(session.token, secureCookies || request.secure));
     response.json({ user: { id: user.id, username: user.username } });
   }
@@ -304,21 +294,21 @@ function createAppServer(options = {}) {
         response.status(400).json({ error: `A senha deve ter entre ${PASSWORD_MIN_LENGTH} e 128 caracteres.` });
         return;
       }
-      if (findUserByUsername(db, username)) {
+      if (await db.findUserByUsername(username)) {
         response.status(409).json({ error: 'Este nome de usuário já está em uso.' });
         return;
       }
       const user = { id: crypto.randomUUID(), username, passwordHash: await hashPassword(password), createdAt: new Date().toISOString() };
       try {
-        insertUser(db, user);
+        await db.insertUser(user);
       } catch (error) {
-        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
           response.status(409).json({ error: 'Este nome de usuário já está em uso.' });
           return;
         }
         throw error;
       }
-      sendSession(user, request, response);
+      await sendSession(user, request, response);
     } catch (error) {
       next(error);
     }
@@ -328,7 +318,7 @@ function createAppServer(options = {}) {
     try {
       const username = typeof request.body?.username === 'string' ? request.body.username.trim() : '';
       const password = typeof request.body?.password === 'string' ? request.body.password : '';
-      const user = findUserByUsername(db, username);
+      const user = await db.findUserByUsername(username);
       if (password.length > 128) {
         response.status(401).json({ error: 'Nome de usuário ou senha inválidos.' });
         return;
@@ -338,35 +328,35 @@ function createAppServer(options = {}) {
         response.status(401).json({ error: 'Nome de usuário ou senha inválidos.' });
         return;
       }
-      sendSession(user, request, response);
+      await sendSession(user, request, response);
     } catch (error) {
       next(error);
     }
   });
 
-  app.post('/api/auth/logout', (request, response) => {
+  app.post('/api/auth/logout', asyncHandler(async (request, response) => {
     const token = readSessionToken(request);
     if (token) {
       const tokenHash = hashSessionToken(token);
-      deleteSession(db, tokenHash);
+      await db.deleteSession(tokenHash);
       wss.clients.forEach(client => {
         if (client.sessionTokenHash === tokenHash) client.close(4001, 'Sessão encerrada');
       });
     }
     response.setHeader('Set-Cookie', clearSessionCookie(secureCookies || request.secure));
     response.status(204).end();
-  });
+  }));
 
-  app.get('/api/me', (request, response) => {
-    const user = getAuthenticatedUser(request);
+  app.get('/api/me', asyncHandler(async (request, response) => {
+    const user = await getAuthenticatedUser(request);
     response.json({ user: user ? { id: user.id, username: user.username } : null });
-  });
+  }));
 
-  app.get('/api/rooms', requireAuth, (request, response) => {
-    response.json({ rooms: listRoomsForUser(db, request.user.id) });
-  });
+  app.get('/api/rooms', requireAuth, asyncHandler(async (request, response) => {
+    response.json({ rooms: await db.listRoomsForUser(request.user.id) });
+  }));
 
-  app.post('/api/rooms', requireAuth, rateLimit('create-room', 10, 60 * 60 * 1000, request => request.user.id), (request, response) => {
+  app.post('/api/rooms', requireAuth, rateLimit('create-room', 10, 60 * 60 * 1000, request => request.user.id), asyncHandler(async (request, response) => {
     const name = typeof request.body?.name === 'string' ? request.body.name.trim() : '';
     const gameSystem = typeof request.body?.gameSystem === 'string' ? request.body.gameSystem.trim() : 'Sistema próprio';
     const description = typeof request.body?.description === 'string' ? request.body.description.trim() : '';
@@ -375,7 +365,7 @@ function createAppServer(options = {}) {
       return;
     }
     const createdAt = new Date().toISOString();
-    const room = createRoom(db, {
+    const room = await db.createRoom({
       id: crypto.randomUUID(),
       name,
       gameSystem: gameSystem || 'Sistema próprio',
@@ -384,44 +374,44 @@ function createAppServer(options = {}) {
       ownerId: request.user.id,
       createdAt
     });
-    response.status(201).json({ room, membership: getRoomMembership(db, room.id, request.user.id) });
-  });
+    response.status(201).json({ room, membership: await db.getRoomMembership(room.id, request.user.id) });
+  }));
 
-  app.post('/api/rooms/:roomId/join', requireAuth, (request, response) => {
-    const result = joinRoom(db, request.params.roomId, request.user.id, new Date().toISOString());
+  app.post('/api/rooms/:roomId/join', requireAuth, asyncHandler(async (request, response) => {
+    const result = await db.joinRoom(request.params.roomId, request.user.id, new Date().toISOString());
     if (result.error) {
-      const status = getRoom(db, request.params.roomId) ? 403 : 404;
+      const status = await db.getRoom(request.params.roomId) ? 403 : 404;
       response.status(status).json({ error: result.error });
       return;
     }
     response.json(result);
-  });
+  }));
 
-  app.get('/api/rooms/:roomId', requireAuth, (request, response) => {
-    const room = getRoom(db, request.params.roomId);
-    const membership = room && getRoomMembership(db, room.id, request.user.id);
-    if (!room || !membership || getRoomBannedUser(db, room.id, request.user.id)) {
+  app.get('/api/rooms/:roomId', requireAuth, asyncHandler(async (request, response) => {
+    const room = await db.getRoom(request.params.roomId);
+    const membership = room && await db.getRoomMembership(room.id, request.user.id);
+    if (!room || !membership || await db.getRoomBannedUser(room.id, request.user.id)) {
       response.status(404).json({ error: 'Sala não encontrada.' });
       return;
     }
     response.json({
       room,
       membership,
-      members: listRoomMembers(db, room.id),
-      bannedMembers: membership.role === 'gm' ? listRoomBans(db, room.id) : []
+      members: await db.listRoomMembers(room.id),
+      bannedMembers: membership.role === 'gm' ? await db.listRoomBans(room.id) : []
     });
-  });
+  }));
 
-  app.get('/api/rooms/:roomId/campaigns', requireAuth, (request, response) => {
-    if (!getAuthorizedMembership(request.params.roomId, request.user.id)) {
+  app.get('/api/rooms/:roomId/campaigns', requireAuth, asyncHandler(async (request, response) => {
+    if (!await getAuthorizedMembership(request.params.roomId, request.user.id)) {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
-    response.json({ campaigns: listCampaigns(db, request.params.roomId) });
-  });
+    response.json({ campaigns: await db.listCampaigns(request.params.roomId) });
+  }));
 
-  app.post('/api/rooms/:roomId/campaigns', requireAuth, (request, response) => {
-    const membership = getAuthorizedMembership(request.params.roomId, request.user.id);
+  app.post('/api/rooms/:roomId/campaigns', requireAuth, asyncHandler(async (request, response) => {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
     if (!membership || membership.role !== 'gm') {
       response.status(403).json({ error: 'Somente o mestre pode criar campanhas.' });
       return;
@@ -432,7 +422,7 @@ function createAppServer(options = {}) {
       return;
     }
     const now = new Date().toISOString();
-    const campaign = createCampaign(db, {
+    const campaign = await db.createCampaign({
       id: crypto.randomUUID(),
       roomId: request.params.roomId,
       ...fields,
@@ -441,11 +431,11 @@ function createAppServer(options = {}) {
       updatedAt: now
     });
     response.status(201).json({ campaign });
-  });
+  }));
 
-  app.patch('/api/campaigns/:campaignId', requireAuth, (request, response) => {
-    const campaign = getCampaign(db, request.params.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.patch('/api/campaigns/:campaignId', requireAuth, asyncHandler(async (request, response) => {
+    const campaign = await db.getCampaign(request.params.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!campaign || !membership) {
       response.status(404).json({ error: 'Campanha não encontrada.' });
       return;
@@ -459,13 +449,13 @@ function createAppServer(options = {}) {
       response.status(400).json({ error: 'Informe um nome (até 100 caracteres) e descrição (até 1000 caracteres) válidos.' });
       return;
     }
-    updateCampaign(db, campaign.id, fields.name, fields.description, new Date().toISOString());
-    response.json({ campaign: getCampaign(db, campaign.id) });
-  });
+    await db.updateCampaign(campaign.id, fields.name, fields.description, new Date().toISOString());
+    response.json({ campaign: await db.getCampaign(campaign.id) });
+  }));
 
-  app.delete('/api/campaigns/:campaignId', requireAuth, (request, response) => {
-    const campaign = getCampaign(db, request.params.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.delete('/api/campaigns/:campaignId', requireAuth, asyncHandler(async (request, response) => {
+    const campaign = await db.getCampaign(request.params.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!campaign || !membership) {
       response.status(404).json({ error: 'Campanha não encontrada.' });
       return;
@@ -474,13 +464,13 @@ function createAppServer(options = {}) {
       response.status(403).json({ error: 'Somente o mestre pode excluir campanhas.' });
       return;
     }
-    deleteCampaign(db, campaign.id);
+    await db.deleteCampaign(campaign.id);
     response.status(204).end();
-  });
+  }));
 
-  app.get('/api/campaigns/:campaignId/notes', requireAuth, (request, response) => {
-    const campaign = getCampaign(db, request.params.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.get('/api/campaigns/:campaignId/notes', requireAuth, asyncHandler(async (request, response) => {
+    const campaign = await db.getCampaign(request.params.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!campaign || !membership) {
       response.status(404).json({ error: 'Campanha não encontrada.' });
       return;
@@ -489,12 +479,12 @@ function createAppServer(options = {}) {
       response.status(403).json({ error: 'As notas da campanha são privadas do mestre.' });
       return;
     }
-    response.json({ notes: listCampaignNotes(db, campaign.id) });
-  });
+    response.json({ notes: await db.listCampaignNotes(campaign.id) });
+  }));
 
-  app.post('/api/campaigns/:campaignId/notes', requireAuth, (request, response) => {
-    const campaign = getCampaign(db, request.params.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.post('/api/campaigns/:campaignId/notes', requireAuth, asyncHandler(async (request, response) => {
+    const campaign = await db.getCampaign(request.params.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!campaign || !membership) {
       response.status(404).json({ error: 'Campanha não encontrada.' });
       return;
@@ -510,7 +500,7 @@ function createAppServer(options = {}) {
       return;
     }
     const now = new Date().toISOString();
-    const note = createCampaignNote(db, {
+    const note = await db.createCampaignNote({
       id: crypto.randomUUID(),
       campaignId: campaign.id,
       title,
@@ -520,12 +510,12 @@ function createAppServer(options = {}) {
       updatedAt: now
     });
     response.status(201).json({ note });
-  });
+  }));
 
-  app.patch('/api/campaign-notes/:noteId', requireAuth, (request, response) => {
-    const note = getCampaignNote(db, request.params.noteId);
-    const campaign = note && getCampaign(db, note.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.patch('/api/campaign-notes/:noteId', requireAuth, asyncHandler(async (request, response) => {
+    const note = await db.getCampaignNote(request.params.noteId);
+    const campaign = note && await db.getCampaign(note.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!note || !membership) {
       response.status(404).json({ error: 'Nota não encontrada.' });
       return;
@@ -540,14 +530,14 @@ function createAppServer(options = {}) {
       response.status(400).json({ error: 'Informe um título (até 120 caracteres) e conteúdo (até 10000 caracteres) válidos.' });
       return;
     }
-    updateCampaignNote(db, note.id, title, content, new Date().toISOString());
-    response.json({ note: getCampaignNote(db, note.id) });
-  });
+    await db.updateCampaignNote(note.id, title, content, new Date().toISOString());
+    response.json({ note: await db.getCampaignNote(note.id) });
+  }));
 
-  app.delete('/api/campaign-notes/:noteId', requireAuth, (request, response) => {
-    const note = getCampaignNote(db, request.params.noteId);
-    const campaign = note && getCampaign(db, note.campaignId);
-    const membership = campaign && getAuthorizedMembership(campaign.roomId, request.user.id);
+  app.delete('/api/campaign-notes/:noteId', requireAuth, asyncHandler(async (request, response) => {
+    const note = await db.getCampaignNote(request.params.noteId);
+    const campaign = note && await db.getCampaign(note.campaignId);
+    const membership = campaign && await getAuthorizedMembership(campaign.roomId, request.user.id);
     if (!note || !membership) {
       response.status(404).json({ error: 'Nota não encontrada.' });
       return;
@@ -556,32 +546,32 @@ function createAppServer(options = {}) {
       response.status(403).json({ error: 'Somente o mestre pode excluir notas.' });
       return;
     }
-    deleteCampaignNote(db, note.id);
+    await db.deleteCampaignNote(note.id);
     response.status(204).end();
-  });
+  }));
 
-  app.get('/api/rooms/:roomId/characters', requireAuth, (request, response) => {
-    const membership = getAuthorizedMembership(request.params.roomId, request.user.id);
+  app.get('/api/rooms/:roomId/characters', requireAuth, asyncHandler(async (request, response) => {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
     if (!membership) {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
-    response.json({ characters: listCharacters(db, request.params.roomId, request.user.id, membership.role === 'gm') });
-  });
+    response.json({ characters: await db.listCharacters(request.params.roomId, request.user.id, membership.role === 'gm') });
+  }));
 
-  app.post('/api/rooms/:roomId/characters', requireAuth, (request, response) => {
-    const membership = getAuthorizedMembership(request.params.roomId, request.user.id);
+  app.post('/api/rooms/:roomId/characters', requireAuth, asyncHandler(async (request, response) => {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
     if (!membership) {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
-    const fields = validCharacterFields(request.body, request.params.roomId);
+    const fields = await validCharacterFields(request.body, request.params.roomId);
     if (!fields) {
       response.status(400).json({ error: 'Ficha inválida: nome obrigatório, dados limitados a 12 KB e campanha da mesma sala.' });
       return;
     }
     const now = new Date().toISOString();
-    const character = createCharacter(db, {
+    const character = await db.createCharacter({
       id: crypto.randomUUID(),
       roomId: request.params.roomId,
       ownerUserId: request.user.id,
@@ -590,11 +580,11 @@ function createAppServer(options = {}) {
       updatedAt: now
     });
     response.status(201).json({ character });
-  });
+  }));
 
-  app.patch('/api/characters/:characterId', requireAuth, (request, response) => {
-    const character = getCharacter(db, request.params.characterId);
-    const membership = character && getAuthorizedMembership(character.roomId, request.user.id);
+  app.patch('/api/characters/:characterId', requireAuth, asyncHandler(async (request, response) => {
+    const character = await db.getCharacter(request.params.characterId);
+    const membership = character && await getAuthorizedMembership(character.roomId, request.user.id);
     if (!character || !membership) {
       response.status(404).json({ error: 'Ficha não encontrada.' });
       return;
@@ -603,18 +593,18 @@ function createAppServer(options = {}) {
       response.status(403).json({ error: 'Você só pode editar suas próprias fichas.' });
       return;
     }
-    const fields = validCharacterFields(request.body, character.roomId);
+    const fields = await validCharacterFields(request.body, character.roomId);
     if (!fields) {
       response.status(400).json({ error: 'Ficha inválida: nome obrigatório, dados limitados a 12 KB e campanha da mesma sala.' });
       return;
     }
-    updateCharacter(db, character.id, fields.name, fields.data, fields.campaignId, new Date().toISOString());
-    response.json({ character: getCharacter(db, character.id) });
-  });
+    await db.updateCharacter(character.id, fields.name, fields.data, fields.campaignId, new Date().toISOString());
+    response.json({ character: await db.getCharacter(character.id) });
+  }));
 
-  app.delete('/api/characters/:characterId', requireAuth, (request, response) => {
-    const character = getCharacter(db, request.params.characterId);
-    const membership = character && getAuthorizedMembership(character.roomId, request.user.id);
+  app.delete('/api/characters/:characterId', requireAuth, asyncHandler(async (request, response) => {
+    const character = await db.getCharacter(request.params.characterId);
+    const membership = character && await getAuthorizedMembership(character.roomId, request.user.id);
     if (!character || !membership) {
       response.status(404).json({ error: 'Ficha não encontrada.' });
       return;
@@ -623,74 +613,76 @@ function createAppServer(options = {}) {
       response.status(403).json({ error: 'Você só pode excluir suas próprias fichas.' });
       return;
     }
-    deleteCharacter(db, character.id);
+    await db.deleteCharacter(character.id);
     response.status(204).end();
-  });
+  }));
 
-  app.post('/api/rooms/:roomId/members/:targetUserId/moderation', requireAuth, (request, response) => {
+  app.post('/api/rooms/:roomId/members/:targetUserId/moderation', requireAuth, asyncHandler(async (request, response) => {
     const { roomId, targetUserId } = request.params;
-    const actorMembership = getRoomMembership(db, roomId, request.user.id);
-    const targetMembership = getRoomMembership(db, roomId, targetUserId);
-    if (!actorMembership || actorMembership.role !== 'gm') {
-      response.status(403).json({ error: 'Somente o mestre pode moderar esta sala.' });
-      return;
-    }
-    const targetUser = findUserById(db, targetUserId);
-    if (!targetUser || targetUserId === request.user.id || (request.body?.action !== 'unban' && (!targetMembership || targetMembership.role === 'gm'))) {
-      response.status(400).json({ error: 'Membro alvo inválido para moderação.' });
-      return;
-    }
-
-    const action = request.body?.action;
-    const reason = typeof request.body?.reason === 'string' ? request.body.reason.trim().slice(0, 200) : '';
-    const now = new Date();
-    let success = false;
-    switch (action) {
-      case 'mute': {
-        const durationMinutes = request.body?.durationMinutes;
-        if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
-          response.status(400).json({ error: 'A duração do silêncio deve ser de 1 a 1440 minutos.' });
-          return;
-        }
-        success = setRoomMute(db, roomId, targetUserId, new Date(now.getTime() + durationMinutes * 60000).toISOString());
-        break;
-      }
-      case 'unmute':
-        success = setRoomMute(db, roomId, targetUserId, null);
-        break;
-      case 'kick':
-        success = removeRoomMember(db, roomId, targetUserId);
-        break;
-      case 'ban':
-        addRoomBan(db, roomId, targetUserId, request.user.id, reason, now.toISOString());
-        success = true;
-        break;
-      case 'unban':
-        success = Boolean(getRoomBannedUser(db, roomId, targetUserId)) && removeRoomBan(db, roomId, targetUserId);
-        break;
-      default:
-        response.status(400).json({ error: 'Ação de moderação inválida.' });
+    await enqueueRoomMutation(roomId, async () => {
+      const actorMembership = await db.getRoomMembership(roomId, request.user.id);
+      const targetMembership = await db.getRoomMembership(roomId, targetUserId);
+      if (!actorMembership || actorMembership.role !== 'gm') {
+        response.status(403).json({ error: 'Somente o mestre pode moderar esta sala.' });
         return;
-    }
-    if (!success) {
-      response.status(404).json({ error: 'Não foi possível aplicar a ação ao membro.' });
-      return;
-    }
-    insertModerationEvent(db, {
-      id: crypto.randomUUID(),
-      roomId,
-      actorUserId: request.user.id,
-      targetUserId,
-      action,
-      createdAt: now.toISOString()
-    });
-    if (action === 'kick' || action === 'ban') {
-      wss.clients.forEach(client => {
-        if (client.roomId === roomId && client.userId === targetUserId) client.close(4003, 'Acesso à sala removido');
+      }
+      const targetUser = await db.findUserById(targetUserId);
+      if (!targetUser || targetUserId === request.user.id || (request.body?.action !== 'unban' && (!targetMembership || targetMembership.role === 'gm'))) {
+        response.status(400).json({ error: 'Membro alvo inválido para moderação.' });
+        return;
+      }
+
+      const action = request.body?.action;
+      const reason = typeof request.body?.reason === 'string' ? request.body.reason.trim().slice(0, 200) : '';
+      const now = new Date();
+      let success = false;
+      switch (action) {
+        case 'mute': {
+          const durationMinutes = request.body?.durationMinutes;
+          if (!Number.isInteger(durationMinutes) || durationMinutes < 1 || durationMinutes > 1440) {
+            response.status(400).json({ error: 'A duração do silêncio deve ser de 1 a 1440 minutos.' });
+            return;
+          }
+          success = await db.setRoomMute(roomId, targetUserId, new Date(now.getTime() + durationMinutes * 60000).toISOString());
+          break;
+        }
+        case 'unmute':
+          success = await db.setRoomMute(roomId, targetUserId, null);
+          break;
+        case 'kick':
+          success = await db.removeRoomMember(roomId, targetUserId);
+          break;
+        case 'ban':
+          await db.addRoomBan(roomId, targetUserId, request.user.id, reason, now.toISOString());
+          success = true;
+          break;
+        case 'unban':
+          success = Boolean(await db.getRoomBannedUser(roomId, targetUserId)) && await db.removeRoomBan(roomId, targetUserId);
+          break;
+        default:
+          response.status(400).json({ error: 'Ação de moderação inválida.' });
+          return;
+      }
+      if (!success) {
+        response.status(404).json({ error: 'Não foi possível aplicar a ação ao membro.' });
+        return;
+      }
+      await db.insertModerationEvent({
+        id: crypto.randomUUID(),
+        roomId,
+        actorUserId: request.user.id,
+        targetUserId,
+        action,
+        createdAt: now.toISOString()
       });
-    }
-    response.json({ ok: true, action, member: getRoomMembership(db, roomId, targetUserId) || null });
-  });
+      if (action === 'kick' || action === 'ban') {
+        wss.clients.forEach(client => {
+          if (client.roomId === roomId && client.userId === targetUserId) client.close(4003, 'Acesso à sala removido');
+        });
+      }
+      response.json({ ok: true, action, member: await db.getRoomMembership(roomId, targetUserId) || null });
+    });
+  }));
 
   const webRoot = options.webRoot || path.resolve(__dirname, '../web/dist');
   if (options.webRoot || process.env.NODE_ENV === 'production') {
@@ -706,14 +698,21 @@ function createAppServer(options = {}) {
     });
   }
 
-  app.get('/api/health', (request, response) => {
+  app.get('/api/health', asyncHandler(async (request, response) => {
+    try {
+      await db.health();
+    } catch (error) {
+      console.error('Health check failed:', error.code || 'unknown error');
+      response.status(503).json({ status: 'unavailable', service: 'freecast-server' });
+      return;
+    }
     response.json({
       status: 'ok',
-      service: 'rrpg-server',
-      mode: 'sqlite-authenticated-room-server',
+      service: 'freecast-server',
+      mode: `${db.kind}-authenticated-room-server`,
       timestamp: new Date().toISOString()
     });
-  });
+  }));
 
   function sendUpgradeError(socket, statusCode, message) {
     socket.write(`HTTP/1.1 ${statusCode} ${message}\r\nConnection: close\r\n\r\n`);
@@ -721,6 +720,7 @@ function createAppServer(options = {}) {
   }
 
   server.on('upgrade', (request, socket, head) => {
+    void (async () => {
     let url;
     try {
       url = new URL(request.url, 'http://localhost');
@@ -738,18 +738,19 @@ function createAppServer(options = {}) {
     }
     const sessionToken = readSessionToken(request);
     const sessionTokenHash = sessionToken ? hashSessionToken(sessionToken) : null;
-    const user = sessionTokenHash ? getSessionUser(db, sessionTokenHash) : null;
+    const user = sessionTokenHash ? await db.getSessionUser(sessionTokenHash) : null;
     if (!user || !sessionTokenHash) {
       sendUpgradeError(socket, 401, 'Unauthorized');
       return;
     }
     const roomId = url.searchParams.get('roomId');
-    const room = roomId && getRoom(db, roomId);
-    const membership = room && getRoomMembership(db, room.id, user.id);
-    if (!room || !membership || getRoomBannedUser(db, room.id, user.id)) {
+    const room = roomId && await db.getRoom(roomId);
+    const membership = room && await db.getRoomMembership(room.id, user.id);
+    if (!room || !membership || await db.getRoomBannedUser(room.id, user.id)) {
       sendUpgradeError(socket, 403, 'Forbidden');
       return;
     }
+    const initialState = await getRoomState(room.id);
 
     wss.handleUpgrade(request, socket, head, ws => {
       ws.roomId = room.id;
@@ -758,51 +759,62 @@ function createAppServer(options = {}) {
       ws.sessionTokenHash = sessionTokenHash;
       const expiryTimer = setTimeout(() => ws.close(4001, 'Sessão expirada'), Math.max(0, Date.parse(user.expiresAt) - Date.now()));
       ws.on('close', () => clearTimeout(expiryTimer));
-      ws.send(JSON.stringify({ type: 'INIT_STATE', payload: getRoomState(room.id) }));
+      ws.send(JSON.stringify({ type: 'INIT_STATE', payload: initialState }));
       ws.on('message', rawMessage => {
-        if (!getSessionUser(db, ws.sessionTokenHash)) {
-          ws.close(4001, 'Sessão encerrada ou expirada');
-          return;
-        }
-        const now = Date.now();
-        if (now - ws.messageWindowStartedAt >= WEBSOCKET_MESSAGE_WINDOW_MS) {
-          ws.messageWindowStartedAt = now;
-          ws.messageCount = 0;
-        }
-        ws.messageCount += 1;
-        if (ws.messageCount > MAX_WEBSOCKET_MESSAGES) {
-          ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Limite de mensagens atingido. Aguarde alguns segundos.' } }));
-          return;
-        }
-        const currentMembership = getRoomMembership(db, room.id, user.id);
-        if (!currentMembership || getRoomBannedUser(db, room.id, user.id)) {
-          ws.close(4003, 'Acesso à sala removido');
-          return;
-        }
-        const state = getRoomState(room.id);
-        const previousState = structuredClone(state);
-        const result = processMessage(rawMessage, state, new Date(), crypto.randomInt, {
-          id: user.id,
-          username: user.username,
-          role: currentMembership.role,
-          mutedUntil: currentMembership.mutedUntil
-        });
-        if (result.type !== 'STATE_UPDATE') {
-          ws.send(JSON.stringify(result));
-          return;
-        }
-        try {
-          persistRoomState(db, room.id, state);
-          const serialized = JSON.stringify(result);
-          wss.clients.forEach(client => {
-            if (client.roomId === room.id && client.readyState === WebSocket.OPEN) client.send(serialized);
+        void enqueueRoomMutation(room.id, async () => {
+          if (!await db.getSessionUser(ws.sessionTokenHash)) {
+            ws.close(4001, 'Sessão encerrada ou expirada');
+            return;
+          }
+          const now = Date.now();
+          if (now - ws.messageWindowStartedAt >= WEBSOCKET_MESSAGE_WINDOW_MS) {
+            ws.messageWindowStartedAt = now;
+            ws.messageCount = 0;
+          }
+          ws.messageCount += 1;
+          if (ws.messageCount > MAX_WEBSOCKET_MESSAGES) {
+            ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Limite de mensagens atingido. Aguarde alguns segundos.' } }));
+            return;
+          }
+          const currentMembership = await db.getRoomMembership(room.id, user.id);
+          if (!currentMembership || await db.getRoomBannedUser(room.id, user.id)) {
+            ws.close(4003, 'Acesso à sala removido');
+            return;
+          }
+          const state = await getRoomState(room.id);
+          const previousState = structuredClone(state);
+          const result = processMessage(rawMessage, state, new Date(), crypto.randomInt, {
+            id: user.id,
+            username: user.username,
+            role: currentMembership.role,
+            mutedUntil: currentMembership.mutedUntil
           });
-        } catch (error) {
-          roomStates.set(room.id, previousState);
-          console.error('Local state persistence failed:', error.code || 'unknown error');
-          ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'A alteração não foi salva no banco local.' } }));
-        }
+          if (result.type !== 'STATE_UPDATE') {
+            ws.send(JSON.stringify(result));
+            return;
+          }
+          try {
+            await db.persistRoomState(room.id, state);
+            const serialized = JSON.stringify(result);
+            wss.clients.forEach(client => {
+              if (client.roomId === room.id && client.readyState === WebSocket.OPEN) client.send(serialized);
+            });
+          } catch (error) {
+            roomStates.set(room.id, previousState);
+            console.error('Room state persistence failed:', error.code || 'unknown error');
+            ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'A alteração não foi salva no armazenamento remoto.' } }));
+          }
+        }).catch(error => {
+          console.error('WebSocket request failed:', error.code || 'unknown error');
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Não foi possível concluir a solicitação.' } }));
+          }
+        });
       });
+    });
+    })().catch(error => {
+      console.error('WebSocket upgrade failed:', error.code || 'unknown error');
+      if (socket.writable) sendUpgradeError(socket, 503, 'Service Unavailable');
     });
   });
 
@@ -819,17 +831,27 @@ function createAppServer(options = {}) {
     response.status(500).json({ error: 'Não foi possível concluir a solicitação.' });
   });
 
-  server.on('close', () => db.close());
+  server.on('close', () => {
+    Promise.resolve(db.close()).catch(error => {
+      console.error('Database shutdown failed:', error.code || 'unknown error');
+    });
+  });
   return { app, server, wss, db, roomStates };
 }
 
 if (require.main === module) {
-  const { server } = createAppServer({ dbPath: process.env.RRPG_DB_PATH });
-  const port = process.env.PORT || 4000;
-  const host = process.env.IP || process.env.HOST || '127.0.0.1';
-  server.listen(port, host, () => {
-    console.log(`RRPG backend listening at http://${host}:${port}`);
-  });
+  createAppServer({ dbPath: process.env.RRPG_DB_PATH, databaseUrl: process.env.DATABASE_URL })
+    .then(({ server }) => {
+      const port = process.env.PORT || 4000;
+      const host = process.env.BIND_HOST || '127.0.0.1';
+      server.listen(port, host, () => {
+        console.log(`FREECAST backend listening at http://${host}:${port}`);
+      });
+    })
+    .catch(error => {
+      console.error('FREECAST server startup failed:', error.code || 'unknown error');
+      process.exitCode = 1;
+    });
 }
 
 module.exports = {

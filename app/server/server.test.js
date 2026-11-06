@@ -16,7 +16,7 @@ function nextMessage(socket) {
 }
 
 async function startTestServer(databasePath, options = {}) {
-  const instance = createAppServer({ dbPath: databasePath, ...options });
+  const instance = await createAppServer({ dbPath: databasePath, ...options });
   await new Promise((resolve, reject) => {
     instance.server.listen(0, '127.0.0.1', error => error ? reject(error) : resolve());
   });
@@ -308,11 +308,11 @@ test('WebSocket validates actions and state survives a backend restart', async (
   }
 });
 
-test('demo room messages, tokens, and rolls survive closing and reopening SQLite', () => {
+test('demo room messages, tokens, and rolls survive closing and reopening SQLite', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rrpg-sqlite-'));
   const databasePath = path.join(directory, 'test.sqlite');
   try {
-    const firstDb = createStore(databasePath);
+    const firstDb = await createStore(databasePath);
     const state = createInitialState();
     processMessage(JSON.stringify({ type: 'SEND_CHAT', payload: { text: 'Persisted message' } }), state);
     processMessage(JSON.stringify({ type: 'MOVE_TOKEN', payload: { id: '1', x: 8, y: 7 } }), state);

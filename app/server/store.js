@@ -365,6 +365,60 @@ function deleteCharacter(db, characterId) {
   return db.prepare('DELETE FROM characters WHERE id = ?').run(characterId).changes > 0;
 }
 
+function createSqliteStore(databasePath = DEFAULT_DATABASE_PATH) {
+  const database = createStore(databasePath);
+  const store = {
+    kind: 'sqlite',
+    close: () => database.close(),
+    health: () => {
+      database.prepare('SELECT 1').get();
+      return true;
+    }
+  };
+  const methods = [
+    'addRoomBan',
+    'createCampaign',
+    'createCampaignNote',
+    'createCharacter',
+    'createRoom',
+    'createSession',
+    'deleteSession',
+    'deleteCampaign',
+    'deleteCampaignNote',
+    'deleteCharacter',
+    'getCampaign',
+    'getCampaignNote',
+    'getCharacter',
+    'findUserById',
+    'findUserByUsername',
+    'getRoom',
+    'getRoomBannedUser',
+    'getRoomMembership',
+    'getSessionUser',
+    'insertModerationEvent',
+    'insertUser',
+    'joinRoom',
+    'listRoomMembers',
+    'listRoomBans',
+    'listCampaignNotes',
+    'listCampaigns',
+    'listCharacters',
+    'listRoomsForUser',
+    'loadRoomState',
+    'persistRoomState',
+    'removeRoomBan',
+    'removeRoomMember',
+    'setRoomMute',
+    'updateCampaign',
+    'updateCampaignNote',
+    'updateCharacter'
+  ];
+  for (const method of methods) {
+    store[method] = (...args) => module.exports[method](database, ...args);
+  }
+  return store;
+}
+
 module.exports = {
   addRoomBan,
   createCampaign,
@@ -404,5 +458,6 @@ module.exports = {
   setRoomMute,
   updateCampaign,
   updateCampaignNote,
-  updateCharacter
+  updateCharacter,
+  createSqliteStore
 };

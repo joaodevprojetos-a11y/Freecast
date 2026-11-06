@@ -1,14 +1,14 @@
 {
   "id": "/",
-  "name": "Rorphic RPG",
-  "short_name": "RRPG",
+  "name": "FREECAST",
+  "short_name": "FREECAST",
   "description": "Mesa virtual independente para jogos de RPG.",
   "lang": "pt-BR",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#12080A",
-  "theme_color": "#58111A",
+  "background_color": "#101113",
+  "theme_color": "#17181A",
   "icons": [
     {
       "src": "/icon-192.png",
