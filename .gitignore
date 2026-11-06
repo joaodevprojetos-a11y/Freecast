@@ -2,3 +2,8 @@
 # Rust build artifacts
 target/
 **/node_modules/
+
+# Local browser test output and reference media
+/.playwright-mcp/
+*.crt
+*.mp4

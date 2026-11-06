@@ -1,3 +1,0 @@
-[    1684ms] TypeError: Cannot read properties of undefined (reading 'options')
-    at fg (https://static.alwaysdata.com/aldjango/administration/echarts-helpers-DjFVosJn.js:69:43678)
-    at UP (https://static.alwaysdata.com/aldjango/administration/echarts-helpers-DjFVosJn.js:69:45826)

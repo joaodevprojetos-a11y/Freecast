@@ -1,3 +1,0 @@
-[      97ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:4173/assets/index-fcxNBdKu.css:0
-[      98ms] [ERROR] Failed to load resource: net::ERR_FAILED @ http://127.0.0.1:4173/assets/index-p4Q7LCo_.js:0
-[     136ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://127.0.0.1:4173/manifest.webmanifest:0
