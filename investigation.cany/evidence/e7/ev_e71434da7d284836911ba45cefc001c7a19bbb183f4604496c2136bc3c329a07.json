@@ -1,0 +1,649 @@
+{
+  "id": "ev_e71434da7d284836911ba45cefc001c7a19bbb183f4604496c2136bc3c329a07",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 100,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "roll"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x227fa12",
+        "references": [],
+        "section": ".idata",
+        "text": "ShowScrollBar"
+      },
+      {
+        "address": "0x227faa8",
+        "references": [],
+        "section": ".idata",
+        "text": "SetScrollRange"
+      },
+      {
+        "address": "0x227faba",
+        "references": [],
+        "section": ".idata",
+        "text": "SetScrollPos"
+      },
+      {
+        "address": "0x227faca",
+        "references": [],
+        "section": ".idata",
+        "text": "SetScrollInfo"
+      },
+      {
+        "address": "0x227fbd8",
+        "references": [],
+        "section": ".idata",
+        "text": "ScrollWindow"
+      },
+      {
+        "address": "0x2280028",
+        "references": [],
+        "section": ".idata",
+        "text": "GetScrollRange"
+      },
+      {
+        "address": "0x228003a",
+        "references": [],
+        "section": ".idata",
+        "text": "GetScrollPos"
+      },
+      {
+        "address": "0x228004a",
+        "references": [],
+        "section": ".idata",
+        "text": "GetScrollInfo"
+      },
+      {
+        "address": "0x228005a",
+        "references": [
+          {
+            "from": "0x44bed90",
+            "function": null
+          }
+        ],
+        "section": ".idata",
+        "text": "GetScrollBarInfo"
+      },
+      {
+        "address": "0x2280426",
+        "references": [],
+        "section": ".idata",
+        "text": "EnableScrollBar"
+      },
+      {
+        "address": "0x2282316",
+        "references": [],
+        "section": ".idata",
+        "text": "FlatSB_SetScrollProp"
+      },
+      {
+        "address": "0x228232e",
+        "references": [],
+        "section": ".idata",
+        "text": "FlatSB_SetScrollPos"
+      },
+      {
+        "address": "0x2282344",
+        "references": [],
+        "section": ".idata",
+        "text": "FlatSB_SetScrollInfo"
+      },
+      {
+        "address": "0x228235c",
+        "references": [],
+        "section": ".idata",
+        "text": "FlatSB_GetScrollPos"
+      },
+      {
+        "address": "0x2282372",
+        "references": [],
+        "section": ".idata",
+        "text": "FlatSB_GetScrollInfo"
+      },
+      {
+        "address": "0x2504c5a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TFRMREQPERMCONTATO\rTFRMROLLDADOS"
+      },
+      {
+        "address": "0x25515b0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "The Kerberos subsystem encountered an error. A service for user protocol request was made against a domain controller which does not support service for user."
+      },
+      {
+        "address": "0x2551902",
+        "references": [],
+        "section": ".rsrc",
+        "text": "The revocation status of the domain controller certificate used for smartcard authentication could not be determined. There is additional information in the system event log. Please contact your system administrator."
+      },
+      {
+        "address": "0x2551ab4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "An untrusted certificate authority was detected while processing the domain controller certificate used for authentication. There is additional information in the system event log. Please contact your system administrator."
+      },
+      {
+        "address": "0x2551c72",
+        "references": [],
+        "section": ".rsrc",
+        "text": "The domain controller certificate used for smartcard logon has expired. Please contact your system administrator with the contents of your system event log."
+      },
+      {
+        "address": "0x2551dac",
+        "references": [],
+        "section": ".rsrc",
+        "text": "The domain controller certificate used for smartcard logon has been revoked. Please contact your system administrator with the contents of your system event log.IA signature operation must be performed before the user can authenticate.AOne or more of the parameters passed to the function was invalid.DClient policy does not allow credential delegation to target server.9The number of maximum ticket referrals has been exceeded.KThe local machine must be a Kerberos KDC (domain controller) and it is not.qThe other end of the security negotiation is requires strong crypto but it is not supported on the local machine.5The KDC reply contained more than one principal name.OExpected to find PA data for a hint of what etype to use, but it was not found."
+      },
+      {
+        "address": "0x255718e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "A descendant of TStyledPresentationProxy has not been registered for class %s.\r\nMaybe it is necessary to add the %s module to the uses section;|AOwner| should be an instance of TCustomPresentedScrollBoxPCould not create styled presentation because CreateAniCalculations returned nil.QKey cannot be empty. Data model cannot set or get data by key with an empty name.!AFormat parameter cannot be empty"
+      },
+      {
+        "address": "0x255860c",
+        "references": [],
+        "section": ".rsrc",
+        "text": "No %s implementation found+Bitmap size must be equal in copy operationJCannot create %s, because |CreateScrollContent| must return not nil objectPPresentation received nil Content from TPresentedControl. Content cannot be nil."
+      },
+      {
+        "address": "0x255989a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "None\nScroll Bar"
+      },
+      {
+        "address": "0x255ae08",
+        "references": [],
+        "section": ".rsrc",
+        "text": " - Dock zone has no controlLError loading dock zone from the stream. Expecting version %d, but found %d.\tCustom...,Multiselect mode must be on for this feature7Length of value array must be >= length of prompt array"
+      },
+      {
+        "address": "0x255b5a0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Scrollbar property out of range"
+      },
+      {
+        "address": "0x256d217",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Threads.GrowControlledParallelJobPool"
+      },
+      {
+        "address": "0x256dd8e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.RollMaterialFormat"
+      },
+      {
+        "address": "0x256e3c9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "FMX.ScrollBox"
+      },
+      {
+        "address": "0x256e3d8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "}FMX.ScrollBox.Win"
+      },
+      {
+        "address": "0x256e3ed",
+        "references": [],
+        "section": ".rsrc",
+        "text": "FMX.ScrollBox.Style"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x2571f79",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBox"
+      },
+      {
+        "address": "0x2573d27",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TVertScrollBox\tsbxTracks"
+      },
+      {
+        "address": "0x257448d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "THorzScrollBox\nsbxMembers"
+      },
+      {
+        "address": "0x257a6cc",
+        "references": [],
+        "section": ".rsrc",
+        "text": "THorzScrollBox"
+      },
+      {
+        "address": "0x257a967",
+        "references": [],
+        "section": ".rsrc",
+        "text": "VertScrollBar.Tracking\t"
+      },
+      {
+        "address": "0x257f1b3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x257f218",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x25803a3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nScrollBars"
+      },
+      {
+        "address": "0x2581ed2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nScrollBars"
+      },
+      {
+        "address": "0x25871cf",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nScrollBars"
+      },
+      {
+        "address": "0x25886b2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x2588996",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x2588db4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x258935c",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x258b3d5",
+        "references": [],
+        "section": ".rsrc",
+        "text": "ReadOnly\t\nScrollBars"
+      },
+      {
+        "address": "0x258b604",
+        "references": [],
+        "section": ".rsrc",
+        "text": "imgAutoRoll"
+      },
+      {
+        "address": "0x258b674",
+        "references": [],
+        "section": ".rsrc",
+        "text": "imgAutoRollClick"
+      },
+      {
+        "address": "0x25944ef",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x25945a2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "clScrollBar"
+      },
+      {
+        "address": "0x25b9a32",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBox"
+      },
+      {
+        "address": "0x25bc721",
+        "references": [],
+        "section": ".rsrc",
+        "text": "imgAutoRoll"
+      },
+      {
+        "address": "0x25c0b25",
+        "references": [],
+        "section": ".rsrc",
+        "text": "imgAutoRoll"
+      },
+      {
+        "address": "0x25ccbd9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "imgAutoRoll"
+      },
+      {
+        "address": "0x25d0a3d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "ReadOnly\t\nScrollBars"
+      },
+      {
+        "address": "0x25d0a91",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\rTfrmRollDados"
+      },
+      {
+        "address": "0x25d0aa0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "frmRollDados\nAlphaBlend\t"
+      },
+      {
+        "address": "0x25d8fb4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "frmViewImage\nAutoScroll\t"
+      },
+      {
+        "address": "0x25d9c9d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarstyle"
+      },
+      {
+        "address": "0x25d9cb0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarleftbutton"
+      },
+      {
+        "address": "0x25d9cc8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarrightbutton"
+      },
+      {
+        "address": "0x25d9ce1",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbartopbutton"
+      },
+      {
+        "address": "0x25d9cf8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarbottombutton"
+      },
+      {
+        "address": "0x25d9d12",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarhtrackstyle"
+      },
+      {
+        "address": "0x25d9d2b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarvtrackstyle"
+      },
+      {
+        "address": "0x25da06a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "smallscrollbarstyle"
+      },
+      {
+        "address": "0x25da082",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollboxstyle"
+      },
+      {
+        "address": "0x25da095",
+        "references": [],
+        "section": ".rsrc",
+        "text": "framedscrollboxstyle"
+      },
+      {
+        "address": "0x262b204",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarstyle"
+      },
+      {
+        "address": "0x262b2ad",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarleftbutton"
+      },
+      {
+        "address": "0x262b374",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarrightbutton"
+      },
+      {
+        "address": "0x262b40c",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbartopbutton"
+      },
+      {
+        "address": "0x262b4be",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarbottombutton"
+      },
+      {
+        "address": "0x262b56e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarhtrackstyle"
+      },
+      {
+        "address": "0x262b61d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarvtrackstyle"
+      },
+      {
+        "address": "0x262b658",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarleftbutton"
+      },
+      {
+        "address": "0x262c885",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarrightbutton"
+      },
+      {
+        "address": "0x262dab3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbartopbutton"
+      },
+      {
+        "address": "0x262ecd1",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarbottombutton"
+      },
+      {
+        "address": "0x262feec",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarhtrackstyle"
+      },
+      {
+        "address": "0x2630286",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbarvtrackstyle"
+      },
+      {
+        "address": "0x2636722",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x2636739",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nvscrollbar"
+      },
+      {
+        "address": "0x26367ef",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x2636806",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nhscrollbar"
+      },
+      {
+        "address": "0x263691b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TSmallScrollBar"
+      },
+      {
+        "address": "0x2636937",
+        "references": [],
+        "section": ".rsrc",
+        "text": "vsmallscrollbar"
+      },
+      {
+        "address": "0x26369e7",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TSmallScrollBar"
+      },
+      {
+        "address": "0x2636a03",
+        "references": [],
+        "section": ".rsrc",
+        "text": "hsmallscrollbar"
+      },
+      {
+        "address": "0x26462bd",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x26462d4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nvscrollbar"
+      },
+      {
+        "address": "0x264638a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x26463a1",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nhscrollbar"
+      },
+      {
+        "address": "0x26464b6",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TSmallScrollBar"
+      },
+      {
+        "address": "0x26464d2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "vsmallscrollbar"
+      },
+      {
+        "address": "0x2646582",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TSmallScrollBar"
+      },
+      {
+        "address": "0x264659e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "hsmallscrollbar"
+      },
+      {
+        "address": "0x26476d5",
+        "references": [],
+        "section": ".rsrc",
+        "text": "scrollbackground"
+      },
+      {
+        "address": "0x264db4d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "smallscrollbarstyle"
+      }
+    ],
+    "total": 341
+  },
+  "summary": "341 strings match \"roll\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 100,
+    "total": 341,
+    "next_offset": 100
+  },
+  "locations": [],
+  "links": []
+}

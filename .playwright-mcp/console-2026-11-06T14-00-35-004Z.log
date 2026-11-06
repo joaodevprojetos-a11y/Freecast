@@ -1,0 +1,238 @@
+[   28059ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:10
+[   28060ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:82
+[   28613ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #418; visit https://reactjs.org/docs/error-decoder.html?invariant=418 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Va (https://railway.com/assets/react-dom-B10zMI9r.js:6:4758)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45043)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28618ms] Error: Minified React error #421; visit https://reactjs.org/docs/error-decoder.html?invariant=421 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at cc (https://railway.com/assets/react-dom-B10zMI9r.js:8:9367)
+    at ac (https://railway.com/assets/react-dom-B10zMI9r.js:8:7321)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45245)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   28619ms] Error: Minified React error #421; visit https://reactjs.org/docs/error-decoder.html?invariant=421 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at cc (https://railway.com/assets/react-dom-B10zMI9r.js:8:9367)
+    at ac (https://railway.com/assets/react-dom-B10zMI9r.js:8:7321)
+    at Wl (https://railway.com/assets/react-dom-B10zMI9r.js:8:45245)
+    at Pl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39294)
+    at Ml (https://railway.com/assets/react-dom-B10zMI9r.js:8:39225)
+    at jl (https://railway.com/assets/react-dom-B10zMI9r.js:8:39085)
+    at vl (https://railway.com/assets/react-dom-B10zMI9r.js:8:34264)
+    at te (https://railway.com/assets/react-dom-B10zMI9r.js:1:1616)
+    at MessagePort.se (https://railway.com/assets/react-dom-B10zMI9r.js:1:1986)
+[   31118ms] [ERROR] Access to script at 'https://luminaire.railway.com/static/surveys.js?v=1.298.0' from origin 'https://railway.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://railway.com/:0
+[   31119ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://luminaire.railway.com/static/surveys.js?v=1.298.0:0
+[   36735ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; AVISO @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.AccountsSignInUi.pt_BR.FsgLe2lpcLY.es5.O/am=D_wgBAAAAABHeBIAABIA9DcAgADBGnCvBTABQgYAAAAAAAAAALgMAEAWAQQ/d=1/excm=_b,_tp,accountchooserview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlEc5_41h7IEJ1vphJzTgXpOYpbpMw/dti=1/m=_b,_tp:610
+[   36735ms] [LOG] %c%s font-size: 18px; O uso deste console pode permitir que invasores falsifiquem sua identidade para roubar informações por meio de um ataque chamado Self-XSS.
+Não insira nem cole códigos que você não conheça. @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.AccountsSignInUi.pt_BR.FsgLe2lpcLY.es5.O/am=D_wgBAAAAABHeBIAABIA9DcAgADBGnCvBTABQgYAAAAAAAAAALgMAEAWAQQ/d=1/excm=_b,_tp,accountchooserview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlEc5_41h7IEJ1vphJzTgXpOYpbpMw/dti=1/m=_b,_tp:610
+[   37905ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0
+[   37911ms] [WARNING] The powerPreference option is currently ignored when calling requestAdapter() on Windows. See https://crbug.com/369219127 @ :0
+[   39393ms] [LOG] %c%s color: red; background: yellow; font-size: 24px; AVISO @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.pt_BR.WmNDxNAXmq0.es5.O/am=cUgAAAAAABAA_A0gWANfAyhAAAAAAAAAAADgAABgEQ/d=1/excm=_b,_tp,attributesview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlFX7is9vrIzEdWFwNxkSZKS7__imA/dti=1/m=_b,_tp:588
+[   39393ms] [LOG] %c%s font-size: 18px; O uso deste console pode permitir que invasores falsifiquem sua identidade para roubar informações por meio de um ataque chamado Self-XSS.
+Não insira nem cole códigos que você não conheça. @ https://www.gstatic.com/_/mss/boq-identity/_/js/k=boq-identity.OAuthUi.pt_BR.WmNDxNAXmq0.es5.O/am=cUgAAAAAABAA_A0gWANfAyhAAAAAAAAAAADgAABgEQ/d=1/excm=_b,_tp,attributesview/ed=1/dg=0/wt=2/ujg=1/rs=AOaEmlFX7is9vrIzEdWFwNxkSZKS7__imA/dti=1/m=_b,_tp:588
+[   51565ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:10
+[   51566ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:82
+[   52349ms] [ERROR] Access to script at 'https://luminaire.railway.com/static/surveys.js?v=1.298.0' from origin 'https://railway.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://railway.com/auth/error?provider=google&msg=Failed%20to%20exchange%20Google%20auth%20code:0
+[   52349ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://luminaire.railway.com/static/surveys.js?v=1.298.0:0
+[   78406ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:10
+[   78407ms] [INFO] 
+    _____
+ ___ |[]|_n__n_I_c
+|___||__|###|____}
+ O-O--O-O+++--O-O
+****************************************
+*                                      *
+*           Enjoying Railway?          *
+*                                      *
+*         Want to ride with us?        *
+*                                      *
+*              Hop aboard,             *
+*   the train is leaving the station!  *
+*                                      *
+*      https://railway.com/careers     *
+*                                      *
+****************************************
+ @ https://railway.com/assets/index-CI2MKQU0.js:82
+[   79087ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   79108ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   79197ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   79227ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   79257ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   79283ms] [WARNING] [DEPRECATED] `getRectOfNodes` is deprecated. Instead use `getNodesBounds` https://reactflow.dev/api-reference/utils/get-nodes-bounds. @ https://railway.com/assets/ConversationDropdown-DTr5roQg.js:0
+[   87211ms] [ERROR] Access to script at 'https://luminaire.railway.com/array/phc_sEEYQU8xP6yQVBaujpZe7a99bw4JfRyLW6BxWkgq5A3F/config.js' from origin 'https://railway.com' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource. @ https://railway.com/new:0
+[   87211ms] [ERROR] Failed to load resource: net::ERR_FAILED @ https://luminaire.railway.com/array/phc_sEEYQU8xP6yQVBaujpZe7a99bw4JfRyLW6BxWkgq5A3F/config.js:0

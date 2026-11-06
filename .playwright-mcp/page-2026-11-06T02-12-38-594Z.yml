@@ -1,0 +1,44 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=e10]
+      - paragraph [ref=e11]: Mesa virtual independente
+    - generic [ref=e12]:
+      - navigation "Navegação principal" [ref=e13]:
+        - button "Lobby" [ref=e14] [cursor=pointer]
+        - button "Mesa" [disabled] [ref=e18]
+        - button "Campanhas" [disabled] [ref=e19]
+        - button "Fichas" [disabled] [ref=e20]
+      - generic [ref=e21]:
+        - status [ref=e22]: Conecte-se a uma sala
+        - generic [ref=e55]: PlaywrightTestRRPG
+        - button "Sair" [ref=e56] [cursor=pointer]
+        - button "Entrar em tela cheia" [ref=e24] [cursor=pointer]
+  - status [ref=e57]: Sessão iniciada como PlaywrightTestRRPG.
+  - main [ref=e30]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - paragraph [ref=e33]: Espaço de jogo
+        - heading "Salas de RPG" [level=2] [ref=e34]
+        - paragraph [ref=e35]: Crie uma sala pública ou entre em uma sala listada. A conta é local a este servidor.
+      - generic [ref=e58]:
+        - generic [ref=e59]:
+          - text: Nome da sala
+          - textbox "Nome da sala" [ref=e60]:
+            - /placeholder: "Ex.: Crônicas do Norte"
+        - generic [ref=e61]:
+          - text: Sistema
+          - textbox "Sistema" [ref=e62]: Sistema próprio
+        - button "Criar sala pública" [ref=e63] [cursor=pointer]
+      - generic [ref=e64]: Buscar nas salas públicas
+      - searchbox "Buscar nas salas públicas" [ref=e65]
+      - article [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - paragraph [ref=e70]: Demonstração pública
+            - heading "O Salão das Lanternas" [level=3] [ref=e71]
+            - paragraph [ref=e72]: Sistema próprio
+          - generic [ref=e73]: Pública
+        - generic [ref=e74]:
+          - generic [ref=e75]: 0 membro(s)
+          - button "Entrar na sala" [ref=e76] [cursor=pointer]

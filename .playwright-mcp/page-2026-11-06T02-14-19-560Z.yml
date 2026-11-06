@@ -1,0 +1,57 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=e10]
+      - paragraph [ref=e11]: Mesa virtual independente
+    - generic [ref=e12]:
+      - navigation "Navegação principal" [ref=e13]:
+        - button "Lobby" [ref=e14] [cursor=pointer]
+        - button "Mesa" [ref=e18] [cursor=pointer]
+        - button "Campanhas" [ref=e19] [cursor=pointer]
+        - button "Fichas" [ref=e20] [cursor=pointer]
+      - generic [ref=e21]:
+        - status [ref=e22]: Sala de Teste UI · sincronizada
+        - generic [ref=e55]: PlaywrightTestRRPG
+        - button "Sair" [ref=e56] [cursor=pointer]
+        - button "Entrar em tela cheia" [ref=e24] [cursor=pointer]
+  - status [ref=e57]: Sessão iniciada como PlaywrightTestRRPG.
+  - main [ref=e274]:
+    - generic [ref=e300]:
+      - paragraph [ref=e301]: Sala de Teste UI
+      - heading "Campanhas e anotações" [level=2] [ref=e302]
+      - generic [ref=e303]:
+        - heading "Nova campanha" [level=3] [ref=e304]
+        - generic [ref=e305]:
+          - text: Nome
+          - textbox "Nome" [ref=e306]
+        - generic [ref=e307]:
+          - text: Descrição
+          - textbox "Descrição" [ref=e308]
+        - button "Criar campanha" [ref=e310] [cursor=pointer]
+      - generic [ref=e311]:
+        - article [ref=e318]:
+          - button [ref=e319] [cursor=pointer]:
+            - heading "Crônica de Teste" [level=3] [ref=e320]
+            - paragraph [ref=e321]: Persistência via UI Playwright
+          - generic [ref=e322]:
+            - button "Editar" [ref=e323] [cursor=pointer]
+            - button "Excluir" [ref=e324] [cursor=pointer]
+        - generic [ref=e314]:
+          - generic [ref=e315]:
+            - text: Campanha selecionada
+            - combobox "Campanha selecionada" [ref=e316]:
+              - option "Selecione uma campanha"
+              - option "Crônica de Teste" [selected]
+          - generic [ref=e325]:
+            - heading "Nova anotação privada do mestre" [level=3] [ref=e326]
+            - textbox "Título da anotação" [ref=e327]:
+              - /placeholder: Título
+            - textbox "Conteúdo da anotação" [ref=e328]:
+              - /placeholder: Anotação (visível somente ao mestre)
+            - button "Salvar anotação" [active] [ref=e330] [cursor=pointer]
+          - article [ref=e333]:
+            - heading "Pista secreta" [level=4] [ref=e334]
+            - paragraph [ref=e335]: A resposta está na torre.
+            - generic [ref=e336]:
+              - button "Editar" [ref=e337] [cursor=pointer]
+              - button "Excluir" [ref=e338] [cursor=pointer]

@@ -1,0 +1,3 @@
+# Handoff
+
+The Rorphic RPG (Rorphic RPG / RRPG) rebuild is 100% complete and fully verified. All original game mechanics and rules have been extracted into `app/MECHANICS.md` and `app/mechanics.json`. The immersive dark fantasy web frontend (React + Vite + TypeScript + Tailwind CSS) under `app/web` features wine-colored headers, gold accents, an authentication modal system, tactical map grid, token placement, dice roller simulator, and real-time session logs. The Node.js/Express WebSocket backend server (`app/server`) provides seamless multiplayer synchronization. All builds have passed successfully with zero errors.

@@ -1,0 +1,19 @@
+{
+  "name": "rrpg-server",
+  "version": "1.0.0",
+  "description": "Rorphic RPG WebSocket & Express Backend Server",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "ws": "^8.16.0"
+  }
+}

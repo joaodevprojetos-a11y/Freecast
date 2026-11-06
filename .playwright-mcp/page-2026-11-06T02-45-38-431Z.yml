@@ -1,0 +1,276 @@
+- generic [ref=f15e1]:
+  - banner [ref=f15e2]:
+    - generic [ref=f15e3]:
+      - link [ref=f15e4] [cursor=pointer]:
+        - /url: /
+      - navigation "Main menu" [ref=f15e7]:
+        - generic [ref=f15e8]:
+          - link " Support" [ref=f15e9] [cursor=pointer]:
+            - /url: /support/?status=open&status=unread
+            - generic [ref=f15e10]: 
+            - text: Support
+          - link " Documentation" [ref=f15e12] [cursor=pointer]:
+            - /url: https://help.alwaysdata.com
+            - generic [ref=f15e13]: 
+            - text: Documentation
+        - generic [ref=f15e15]:
+          - button " Customer area joao.dev.projetos@gmail.com " [active] [ref=f15e16] [cursor=pointer]:
+            - generic [ref=f15e17]: 
+            - generic [ref=f15e18]:
+              - text: Customer area
+              - generic [ref=f15e19]: joao.dev.projetos@gmail.com
+            - generic [ref=f15e20]: 
+          - list [ref=f15e198]:
+            - listitem [ref=f15e199]:
+              - link " Profile" [ref=f15e200] [cursor=pointer]:
+                - /url: /user/
+                - generic [ref=f15e201]: 
+                - text: Profile
+            - listitem [ref=f15e202]:
+              - link " Subscriptions" [ref=f15e203] [cursor=pointer]:
+                - /url: /subscription/
+                - generic [ref=f15e204]: 
+                - text: Subscriptions
+            - listitem [ref=f15e205]:
+              - link " Permissions" [ref=f15e206] [cursor=pointer]:
+                - /url: /permissions/
+                - generic [ref=f15e207]: 
+                - text: Permissions
+            - listitem [ref=f15e208]:
+              - link " Billing" [ref=f15e209] [cursor=pointer]:
+                - /url: /billing/
+                - generic [ref=f15e210]: 
+                - text: Billing
+            - listitem [ref=f15e211]:
+              - link " Activity" [ref=f15e212] [cursor=pointer]:
+                - /url: /message/
+                - generic [ref=f15e213]: 
+                - text: Activity
+            - listitem [ref=f15e214]:
+              - link " Transfers" [ref=f15e215] [cursor=pointer]:
+                - /url: /transfer/
+                - generic [ref=f15e216]: 
+                - text: Transfers
+            - listitem [ref=f15e217]:
+              - link " Logout" [ref=f15e218] [cursor=pointer]:
+                - /url: /logout/
+                - generic [ref=f15e219]: 
+                - text: Logout
+      - text:         
+  - generic [ref=f15e21]:
+    - generic [ref=f15e24]:
+      - list [ref=f15e25]:
+        - listitem [ref=f15e26]:
+          - link "Home" [ref=f15e27] [cursor=pointer]:
+            - /url: /
+      - generic [ref=f15e28]:
+        - textbox "Search..." [ref=f15e31]
+        - link "" [ref=f15e33] [cursor=pointer]:
+          - /url: /task/
+        - link " 1" [ref=f15e197] [cursor=pointer]:
+          - /url: /message/
+          - generic [ref=f15e37]: 
+          - text: "1"
+        - link "" [ref=f15e39] [cursor=pointer]:
+          - /url: https://help.alwaysdata.com/love/
+    - generic [ref=f15e42]:
+      - generic [ref=f15e44]:
+        - generic [ref=f15e46]:
+          - generic [ref=f15e47]:
+            - link "freecast" [ref=f15e48] [cursor=pointer]:
+              - /url: javascript:void(0)
+            - button "freecast" [ref=f15e51]
+          - combobox [ref=f15e52]:
+            - option "freecast" [selected]
+        - list [ref=f15e53]:
+          - listitem [ref=f15e54]:
+            - generic [ref=f15e55]: 
+            - link "Usage" [ref=f15e56] [cursor=pointer]:
+              - /url: /account/usage/
+          - listitem [ref=f15e57]:
+            - generic [ref=f15e58]: 
+            - link "Web" [ref=f15e59] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=f15e60]:
+            - generic [ref=f15e61]: 
+            - link "Domains" [ref=f15e62] [cursor=pointer]:
+              - /url: /domain/
+          - listitem [ref=f15e63]:
+            - generic [ref=f15e64]: 
+            - link "Emails" [ref=f15e65] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f15e66]:
+              - listitem [ref=f15e67]:
+                - link "Addresses" [ref=f15e68] [cursor=pointer]:
+                  - /url: /mailbox/
+              - listitem [ref=f15e69]:
+                - link "Mailing lists" [ref=f15e70] [cursor=pointer]:
+                  - /url: /mailinglist/
+              - listitem [ref=f15e71]:
+                - link "History" [ref=f15e72] [cursor=pointer]:
+                  - /url: /log/mail/outbound/
+              - listitem [ref=f15e73]:
+                - link "Configuration" [ref=f15e74] [cursor=pointer]:
+                  - /url: /email/configuration/
+          - listitem [ref=f15e75]:
+            - generic [ref=f15e76]: 
+            - link "Databases" [ref=f15e77] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f15e78]:
+              - listitem [ref=f15e79]:
+                - link "MySQL" [ref=f15e80] [cursor=pointer]:
+                  - /url: /database/?type=mysql
+              - listitem [ref=f15e81]:
+                - link "PostgreSQL" [ref=f15e82] [cursor=pointer]:
+                  - /url: /database/?type=postgresql
+              - listitem [ref=f15e83]:
+                - link "RabbitMQ" [ref=f15e84] [cursor=pointer]:
+                  - /url: /database/?type=rabbitmq
+          - listitem [ref=f15e85]:
+            - generic [ref=f15e86]: 
+            - link "Remote access" [ref=f15e87] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f15e88]:
+              - listitem [ref=f15e89]:
+                - link "SSH/SFTP" [ref=f15e90] [cursor=pointer]:
+                  - /url: /ssh/
+              - listitem [ref=f15e91]:
+                - link "FTP" [ref=f15e92] [cursor=pointer]:
+                  - /url: /ftp/
+              - listitem [ref=f15e93]:
+                - link "WebDAV" [ref=f15e94] [cursor=pointer]:
+                  - /url: /webdav/
+          - listitem [ref=f15e95]:
+            - generic [ref=f15e96]: 
+            - link "Environment" [ref=f15e97] [cursor=pointer]:
+              - /url: /environment/
+          - listitem [ref=f15e98]:
+            - generic [ref=f15e99]: 
+            - link "Advanced" [ref=f15e100] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f15e101]:
+              - listitem [ref=f15e102]:
+                - link "Servers status" [ref=f15e103] [cursor=pointer]:
+                  - /url: /status/
+              - listitem [ref=f15e104]:
+                - link "Scheduled tasks" [ref=f15e105] [cursor=pointer]:
+                  - /url: /job/
+              - listitem [ref=f15e106]:
+                - link "Services" [ref=f15e107] [cursor=pointer]:
+                  - /url: /service/
+              - listitem [ref=f15e108]:
+                - link "Processes" [ref=f15e109] [cursor=pointer]:
+                  - /url: /advanced/processes/
+              - listitem [ref=f15e110]:
+                - link "IP addresses" [ref=f15e111] [cursor=pointer]:
+                  - /url: /ip/
+              - listitem [ref=f15e112]:
+                - link "SSL certificates" [ref=f15e113] [cursor=pointer]:
+                  - /url: /ssl/
+              - listitem [ref=f15e114]:
+                - link "Backup recovery" [ref=f15e115] [cursor=pointer]:
+                  - /url: /backup/restore/
+              - listitem [ref=f15e116]:
+                - link "Logs" [ref=f15e117] [cursor=pointer]:
+                  - /url: /advanced/log/
+              - listitem [ref=f15e118]:
+                - link "Migrations" [ref=f15e119] [cursor=pointer]:
+                  - /url: /migration/
+      - generic [ref=f15e121]:
+        - generic [ref=f15e122]:
+          - heading " Notifications" [level=3] [ref=f15e125]:
+            - generic [ref=f15e126]: 
+            - text: Notifications
+          - table [ref=f15e128]:
+            - rowgroup [ref=f15e129]:
+              - row [ref=f15e130]:
+                - cell "November 6, 2026" [ref=f15e131]
+                - cell [ref=f15e132]:
+                  - text: "[alwaysdata] Welcome to alwaysdata! •"
+                  - link "More details »" [ref=f15e133] [cursor=pointer]:
+                    - /url: /message/5182318/detail/
+        - generic [ref=f15e134]:
+          - heading " Changelog" [level=3] [ref=f15e137]:
+            - generic [ref=f15e138]: 
+            - text: Changelog
+          - table [ref=f15e140]:
+            - rowgroup [ref=f15e141]:
+              - row [ref=f15e142]:
+                - cell "October 23, 2026" [ref=f15e143]
+                - cell [ref=f15e144]:
+                  - text: "New Ruby versions available: 4.0.9, 3.4.12, 3.3.13 •"
+                  - link "More details »" [ref=f15e145] [cursor=pointer]:
+                    - /url: https://changelog.alwaysdata.com/555/detail/
+              - row [ref=f15e146]:
+                - cell "October 23, 2026" [ref=f15e147]
+                - cell [ref=f15e148]:
+                  - text: "New Python versions available: 3.14.9, 3.13.17 •"
+                  - link "More details »" [ref=f15e149] [cursor=pointer]:
+                    - /url: https://changelog.alwaysdata.com/556/detail/
+              - row [ref=f15e150]:
+                - cell "October 22, 2026" [ref=f15e151]
+                - cell [ref=f15e152]:
+                  - text: "New Node.js versions available: 24.22.1, 22.23.4 •"
+                  - link "More details »" [ref=f15e153] [cursor=pointer]:
+                    - /url: https://changelog.alwaysdata.com/554/detail/
+              - row [ref=f15e154]:
+                - cell "October 21, 2026" [ref=f15e155]
+                - cell [ref=f15e156]:
+                  - text: "New PHP versions available: 8.5.12, 8.4.27, 8.3.36, 8.2.35 •"
+                  - link "More details »" [ref=f15e157] [cursor=pointer]:
+                    - /url: https://changelog.alwaysdata.com/553/detail/
+              - row [ref=f15e158]:
+                - cell "October 15, 2026" [ref=f15e159]
+                - cell [ref=f15e160]:
+                  - text: Add your SSH keys directly through the administration interface •
+                  - link "More details »" [ref=f15e161] [cursor=pointer]:
+                    - /url: https://changelog.alwaysdata.com/552/detail/
+  - contentinfo [ref=f15e162]:
+    - generic [ref=f15e163]:
+      - link "alwaysdata website":
+        - /url: https://www.alwaysdata.com
+        - img [ref=f15e164] [cursor=pointer]
+    - generic [ref=f15e166]:
+      - generic [ref=f15e167]:
+        - generic [ref=f15e168]: Resources
+        - generic [ref=f15e169]:
+          - generic [ref=f15e170]:
+            - link "Administration" [ref=f15e171] [cursor=pointer]:
+              - /url: https://admin.alwaysdata.com
+            - link "Documentation" [ref=f15e172] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com
+            - link "API" [ref=f15e173] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/api/
+          - generic [ref=f15e174]:
+            - link "Servers status" [ref=f15e175] [cursor=pointer]:
+              - /url: https://status.alwaysdata.com
+            - link "Changelog" [ref=f15e176] [cursor=pointer]:
+              - /url: https://changelog.alwaysdata.com
+            - link "❤️ Support us" [ref=f15e177] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/love/
+      - generic [ref=f15e178]:
+        - generic [ref=f15e179]: More
+        - generic [ref=f15e180]:
+          - generic [ref=f15e181]:
+            - link "Environment" [ref=f15e182] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/environment/
+            - link "Transparency" [ref=f15e183] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/transparency/
+            - link "Alwaysdata Academic Cloud" [ref=f15e184] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/academic-cloud/
+            - link "Open source" [ref=f15e185] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/open-source/
+          - generic [ref=f15e186]:
+            - link "Bug Bounty" [ref=f15e187] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/bug-bounty
+            - link "Cookies management" [ref=f15e188] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/cookies-policy/
+            - link "Legal notices" [ref=f15e189] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/terms-and-legal/
+            - link "Join us" [ref=f15e190] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/jobs/
+    - generic [ref=f15e191]:
+      - text: All rights reserved, alwaysdata
+      - link [ref=f15e193] [cursor=pointer]:
+        - /url: https://twitter.com/alwaysdata
+  - status [ref=f15e196]

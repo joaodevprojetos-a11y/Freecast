@@ -1,0 +1,42 @@
+{
+  "id": "ev_75734b3aaa1625febf3cc9b8ce0280c5241eff62ac2d2615c49192fc5dde998a",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_bytes_show",
+  "params": {
+    "address": "0x1f96980",
+    "length": 64
+  },
+  "result": {
+    "address": "0x1f96980",
+    "ascii": "^..Do=.r..RCRollDados.........@.U....d....q.../G......].U....p..",
+    "file_offset": 28925312,
+    "hex": "5ef901446f3d0172000b5243526f6c6c4461646f7300000000020000008d4000558bec838064040000017105e8eb2f47fee8920000005dc3558bec8380700400",
+    "length": 64
+  },
+  "summary": "64 bytes at 0x1f96980.",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [],
+  "coverage": {
+    "status": "complete",
+    "examined": 64,
+    "total": 64
+  },
+  "locations": [
+    {
+      "kind": "address",
+      "value": "0x1f96980"
+    }
+  ],
+  "links": []
+}

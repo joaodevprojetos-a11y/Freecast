@@ -1,0 +1,224 @@
+{
+  "id": "ev_29b897a77fda7aa1bc82226eae53bb8a366d88da14729458cb0ed7b48d769e27",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 30,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "Dado"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x2504c5a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TFRMREQPERMCONTATO\rTFRMROLLDADOS"
+      },
+      {
+        "address": "0x256dbdb",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.FMXRenderer"
+      },
+      {
+        "address": "0x256dbf4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Consts"
+      },
+      {
+        "address": "0x256dc08",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Engine"
+      },
+      {
+        "address": "0x256dcb6",
+        "references": [],
+        "section": ".rsrc",
+        "text": "&RRPG.Dados.FaceResults3D"
+      },
+      {
+        "address": "0x256dcd2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.CommProtocol"
+      },
+      {
+        "address": "0x256dd4d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.SkinMaterial"
+      },
+      {
+        "address": "0x256dd8e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.RollMaterialFormat"
+      },
+      {
+        "address": "0x256ddf2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Physics"
+      },
+      {
+        "address": "0x256f084",
+        "references": [],
+        "section": ".rsrc",
+        "text": "%RRPG.Dados.VCLRenderer"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x256f823",
+        "references": [],
+        "section": ".rsrc",
+        "text": "=RCDados3DLoader"
+      },
+      {
+        "address": "0x257fe68",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258077b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2580c4b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258332d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2583a7b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258440f",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2584d02",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2585fc7",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2589b59",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2593421",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25934d9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "labAlertDados3D"
+      },
+      {
+        "address": "0x2593c95",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTRCheckBox\ncbxDados3D"
+      },
+      {
+        "address": "0x2593cd8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Mostrar animações de dados em 3D"
+      },
+      {
+        "address": "0x2593da2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "btnPersonalizarDados"
+      },
+      {
+        "address": "0x2593e0d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "btnPersonalizarDadosClick"
+      },
+      {
+        "address": "0x2595b66",
+        "references": [],
+        "section": ".rsrc",
+        "text": "cbxSomDados"
+      },
+      {
+        "address": "0x2595b99",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Quando rolar dados"
+      },
+      {
+        "address": "0x2595e6f",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Direct2D (Recomendado)"
+      }
+    ],
+    "total": 70
+  },
+  "summary": "70 strings match \"Dado\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 30,
+    "total": 70,
+    "next_offset": 30
+  },
+  "locations": [],
+  "links": []
+}

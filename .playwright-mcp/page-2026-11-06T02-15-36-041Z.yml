@@ -1,0 +1,54 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=e10]
+      - paragraph [ref=e11]: Mesa virtual independente
+    - generic [ref=e12]:
+      - navigation "Navegação principal" [ref=e13]:
+        - button "Lobby" [ref=e14] [cursor=pointer]
+        - button "Mesa" [disabled] [ref=e18]
+        - button "Campanhas" [disabled] [ref=e19]
+        - button "Fichas" [disabled] [ref=e20]
+      - generic [ref=e21]:
+        - status [ref=e22]: Conecte-se a uma sala
+        - generic [ref=e54]: PlaywrightPlayer2
+        - button "Sair" [ref=e55] [cursor=pointer]
+        - button "Entrar em tela cheia" [ref=e24] [cursor=pointer]
+  - status [ref=e56]: Sessão iniciada como PlaywrightPlayer2.
+  - main [ref=e30]:
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - paragraph [ref=e33]: Espaço de jogo
+        - heading "Salas de RPG" [level=2] [ref=e34]
+        - paragraph [ref=e35]: Crie uma sala pública ou entre em uma sala listada. A conta é local a este servidor.
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - text: Nome da sala
+          - textbox "Nome da sala" [ref=e59]:
+            - /placeholder: "Ex.: Crônicas do Norte"
+        - generic [ref=e60]:
+          - text: Sistema
+          - textbox "Sistema" [ref=e61]: Sistema próprio
+        - button "Criar sala pública" [ref=e62] [cursor=pointer]
+      - generic [ref=e63]: Buscar nas salas públicas
+      - searchbox "Buscar nas salas públicas" [ref=e64]
+      - generic [ref=e65]:
+        - article [ref=e66]:
+          - generic [ref=e67]:
+            - generic [ref=e68]:
+              - heading "Sala de Teste UI" [level=3] [ref=e69]
+              - paragraph [ref=e70]: Sistema próprio
+            - generic [ref=e71]: Pública
+          - generic [ref=e72]:
+            - generic [ref=e73]: 1 membro(s)
+            - button "Entrar na sala" [ref=e74] [cursor=pointer]
+        - article [ref=e75]:
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - paragraph [ref=e78]: Demonstração pública
+              - heading "O Salão das Lanternas" [level=3] [ref=e79]
+              - paragraph [ref=e80]: Sistema próprio
+            - generic [ref=e81]: Pública
+          - generic [ref=e82]:
+            - generic [ref=e83]: 0 membro(s)
+            - button "Entrar na sala" [ref=e84] [cursor=pointer]

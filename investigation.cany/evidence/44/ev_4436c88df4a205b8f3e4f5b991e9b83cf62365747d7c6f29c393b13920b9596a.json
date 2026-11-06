@@ -1,0 +1,164 @@
+{
+  "id": "ev_4436c88df4a205b8f3e4f5b991e9b83cf62365747d7c6f29c393b13920b9596a",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 20,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "dados"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x2504c5a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TFRMREQPERMCONTATO\rTFRMROLLDADOS"
+      },
+      {
+        "address": "0x256dbdb",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.FMXRenderer"
+      },
+      {
+        "address": "0x256dbf4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Consts"
+      },
+      {
+        "address": "0x256dc08",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Engine"
+      },
+      {
+        "address": "0x256dcb6",
+        "references": [],
+        "section": ".rsrc",
+        "text": "&RRPG.Dados.FaceResults3D"
+      },
+      {
+        "address": "0x256dcd2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.CommProtocol"
+      },
+      {
+        "address": "0x256dd4d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.SkinMaterial"
+      },
+      {
+        "address": "0x256dd8e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.RollMaterialFormat"
+      },
+      {
+        "address": "0x256ddf2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Physics"
+      },
+      {
+        "address": "0x256f084",
+        "references": [],
+        "section": ".rsrc",
+        "text": "%RRPG.Dados.VCLRenderer"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x256f823",
+        "references": [],
+        "section": ".rsrc",
+        "text": "=RCDados3DLoader"
+      },
+      {
+        "address": "0x257fe68",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258077b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2580c4b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258332d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2583a7b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258440f",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2584d02",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2585fc7",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      }
+    ],
+    "total": 65
+  },
+  "summary": "65 strings match \"dados\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 20,
+    "total": 65,
+    "next_offset": 20
+  },
+  "locations": [],
+  "links": []
+}

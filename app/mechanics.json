@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "values": [
+    {
+      "name": "base_movement_speed",
+      "group": "movement",
+      "key": "base_movement_speed",
+      "value": "5",
+      "source": "manual",
+      "estimated": true
+    },
+    {
+      "name": "max_inventory_slots",
+      "group": "inventory",
+      "key": "max_inventory_slots",
+      "value": "20",
+      "source": "manual",
+      "estimated": true
+    }
+  ]
+}

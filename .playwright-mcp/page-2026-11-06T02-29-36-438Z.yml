@@ -1,0 +1,39 @@
+- generic [ref=f7e3]:
+  - banner [ref=f7e4]:
+    - generic [ref=f7e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=f7e10]
+      - paragraph [ref=f7e11]: Mesa virtual independente
+    - generic [ref=f7e12]:
+      - navigation "Navegação principal" [ref=f7e13]:
+        - button "Lobby" [ref=f7e14] [cursor=pointer]
+        - button "Mesa" [disabled] [ref=f7e18]
+        - button "Campanhas" [disabled] [ref=f7e19]
+        - button "Fichas" [disabled] [ref=f7e20]
+      - generic [ref=f7e21]:
+        - status [ref=f7e22]: Entre para jogar
+        - button "Entrar em tela cheia" [ref=f7e24] [cursor=pointer]
+  - alert [ref=f7e30]: Failed to fetch
+  - main [ref=f7e31]:
+    - generic [ref=f7e32]:
+      - generic [ref=f7e33]:
+        - paragraph [ref=f7e34]: Espaço de jogo
+        - heading "Salas de RPG" [level=2] [ref=f7e35]
+        - paragraph [ref=f7e36]: Crie uma sala pública ou entre em uma sala listada. A conta é local a este servidor.
+      - generic [ref=f7e37]:
+        - generic [ref=f7e38]:
+          - paragraph [ref=f7e39]: Conta local
+          - heading "Entrar na mesa" [level=3] [ref=f7e40]
+          - paragraph [ref=f7e41]: A senha é armazenada como hash no banco local. Não use uma senha de outro serviço.
+          - generic [ref=f7e42]:
+            - generic [ref=f7e43]:
+              - text: Nome de usuário
+              - textbox "Nome de usuário" [ref=f7e44]
+            - generic [ref=f7e45]:
+              - text: Senha
+              - textbox "Senha" [ref=f7e46]
+            - button "Entrar" [ref=f7e47] [cursor=pointer]
+          - button "Ainda não tenho conta" [ref=f7e48] [cursor=pointer]
+        - complementary [ref=f7e49]:
+          - heading "Demonstração pública" [level=3] [ref=f7e50]
+          - paragraph [ref=f7e51]: A sala inicial é compartilhada com qualquer usuário que entrar. Não coloque dados sensíveis nela.
+          - paragraph [ref=f7e52]: "Estado do servidor: Failed to fetch"

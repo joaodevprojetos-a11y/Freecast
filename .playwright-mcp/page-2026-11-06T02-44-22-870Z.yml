@@ -1,0 +1,266 @@
+- generic [active] [ref=f14e1]:
+  - banner [ref=f14e2]:
+    - generic [ref=f14e3]:
+      - link [ref=f14e4] [cursor=pointer]:
+        - /url: /
+      - navigation "Main menu" [ref=f14e7]:
+        - generic [ref=f14e8]:
+          - link " Support" [ref=f14e9] [cursor=pointer]:
+            - /url: /support/?status=open&status=unread
+            - generic [ref=f14e10]: 
+            - text: Support
+          - link " Documentation" [ref=f14e12] [cursor=pointer]:
+            - /url: https://help.alwaysdata.com
+            - generic [ref=f14e13]: 
+            - text: Documentation
+        - generic [ref=f14e15]:
+          - button " Customer area joao.dev.projetos@gmail.com " [ref=f14e16] [cursor=pointer]:
+            - generic [ref=f14e17]: 
+            - generic [ref=f14e18]:
+              - text: Customer area
+              - generic [ref=f14e19]: joao.dev.projetos@gmail.com
+            - generic [ref=f14e20]: 
+          - text:       
+      - text:         
+  - generic [ref=f14e21]:
+    - generic [ref=f14e24]:
+      - list [ref=f14e25]:
+        - listitem [ref=f14e26]:
+          - link "Home" [ref=f14e27] [cursor=pointer]:
+            - /url: /
+        - listitem [ref=f14e28]:
+          - text: /
+          - link "Account usage" [ref=f14e29] [cursor=pointer]:
+            - /url: /account/usage/
+      - generic [ref=f14e30]:
+        - textbox "Search..." [ref=f14e33]
+        - link "" [ref=f14e35] [cursor=pointer]:
+          - /url: /task/
+        - link "" [ref=f14e38] [cursor=pointer]:
+          - /url: /message/
+        - link "" [ref=f14e41] [cursor=pointer]:
+          - /url: https://help.alwaysdata.com/love/
+    - generic [ref=f14e44]:
+      - generic [ref=f14e46]:
+        - generic [ref=f14e48]:
+          - generic [ref=f14e49]:
+            - link "freecast" [ref=f14e50] [cursor=pointer]:
+              - /url: javascript:void(0)
+            - button "freecast" [ref=f14e53]
+          - combobox [ref=f14e54]:
+            - option "freecast" [selected]
+        - list [ref=f14e55]:
+          - listitem [ref=f14e56]:
+            - generic [ref=f14e57]: 
+            - link "Usage" [ref=f14e58] [cursor=pointer]:
+              - /url: /account/usage/
+          - listitem [ref=f14e59]:
+            - generic [ref=f14e60]: 
+            - link "Web" [ref=f14e61] [cursor=pointer]:
+              - /url: "#"
+          - listitem [ref=f14e62]:
+            - generic [ref=f14e63]: 
+            - link "Domains" [ref=f14e64] [cursor=pointer]:
+              - /url: /domain/
+          - listitem [ref=f14e65]:
+            - generic [ref=f14e66]: 
+            - link "Emails" [ref=f14e67] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f14e68]:
+              - listitem [ref=f14e69]:
+                - link "Addresses" [ref=f14e70] [cursor=pointer]:
+                  - /url: /mailbox/
+              - listitem [ref=f14e71]:
+                - link "Mailing lists" [ref=f14e72] [cursor=pointer]:
+                  - /url: /mailinglist/
+              - listitem [ref=f14e73]:
+                - link "History" [ref=f14e74] [cursor=pointer]:
+                  - /url: /log/mail/outbound/
+              - listitem [ref=f14e75]:
+                - link "Configuration" [ref=f14e76] [cursor=pointer]:
+                  - /url: /email/configuration/
+          - listitem [ref=f14e77]:
+            - generic [ref=f14e78]: 
+            - link "Databases" [ref=f14e79] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f14e80]:
+              - listitem [ref=f14e81]:
+                - link "MySQL" [ref=f14e82] [cursor=pointer]:
+                  - /url: /database/?type=mysql
+              - listitem [ref=f14e83]:
+                - link "PostgreSQL" [ref=f14e84] [cursor=pointer]:
+                  - /url: /database/?type=postgresql
+              - listitem [ref=f14e85]:
+                - link "RabbitMQ" [ref=f14e86] [cursor=pointer]:
+                  - /url: /database/?type=rabbitmq
+          - listitem [ref=f14e87]:
+            - generic [ref=f14e88]: 
+            - link "Remote access" [ref=f14e89] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f14e90]:
+              - listitem [ref=f14e91]:
+                - link "SSH/SFTP" [ref=f14e92] [cursor=pointer]:
+                  - /url: /ssh/
+              - listitem [ref=f14e93]:
+                - link "FTP" [ref=f14e94] [cursor=pointer]:
+                  - /url: /ftp/
+              - listitem [ref=f14e95]:
+                - link "WebDAV" [ref=f14e96] [cursor=pointer]:
+                  - /url: /webdav/
+          - listitem [ref=f14e97]:
+            - generic [ref=f14e98]: 
+            - link "Environment" [ref=f14e99] [cursor=pointer]:
+              - /url: /environment/
+          - listitem [ref=f14e100]:
+            - generic [ref=f14e101]: 
+            - link "Advanced" [ref=f14e102] [cursor=pointer]:
+              - /url: "#"
+            - menu [ref=f14e103]:
+              - listitem [ref=f14e104]:
+                - link "Servers status" [ref=f14e105] [cursor=pointer]:
+                  - /url: /status/
+              - listitem [ref=f14e106]:
+                - link "Scheduled tasks" [ref=f14e107] [cursor=pointer]:
+                  - /url: /job/
+              - listitem [ref=f14e108]:
+                - link "Services" [ref=f14e109] [cursor=pointer]:
+                  - /url: /service/
+              - listitem [ref=f14e110]:
+                - link "Processes" [ref=f14e111] [cursor=pointer]:
+                  - /url: /advanced/processes/
+              - listitem [ref=f14e112]:
+                - link "IP addresses" [ref=f14e113] [cursor=pointer]:
+                  - /url: /ip/
+              - listitem [ref=f14e114]:
+                - link "SSL certificates" [ref=f14e115] [cursor=pointer]:
+                  - /url: /ssl/
+              - listitem [ref=f14e116]:
+                - link "Backup recovery" [ref=f14e117] [cursor=pointer]:
+                  - /url: /backup/restore/
+              - listitem [ref=f14e118]:
+                - link "Logs" [ref=f14e119] [cursor=pointer]:
+                  - /url: /advanced/log/
+              - listitem [ref=f14e120]:
+                - link "Migrations" [ref=f14e121] [cursor=pointer]:
+                  - /url: /migration/
+      - generic [ref=f14e123]:
+        - heading "Overview of your consumption" [level=1] [ref=f14e124]
+        - generic [ref=f14e125]:
+          - heading "The graphs shown here summarize your account's usage." [level=2] [ref=f14e126]
+          - list [ref=f14e127]:
+            - listitem [ref=f14e128]: You can change the time period using the display period selector.
+            - listitem [ref=f14e129]: To correctly display the chosen period, only certain points are shown. Therefore, you should select a finer period with the mouse to obtain a more precise display.
+            - listitem [ref=f14e130]: We have chosen to highlight peaks rather than averages so that you can easily choose the offer that best suits your needs.
+        - separator [ref=f14e131]
+        - generic [ref=f14e132]:
+          - generic [ref=f14e133]:
+            - paragraph [ref=f14e134]:
+              - text: Your
+              - strong [ref=f14e135]: Small (50GB disk, 1GB RAM, 1 CPU)
+              - text: "subscription for this account includes:"
+            - list [ref=f14e136]:
+              - listitem [ref=f14e137]:
+                - strong [ref=f14e138]: Disk
+                - text: ": N/A"
+              - listitem [ref=f14e139]:
+                - strong [ref=f14e140]: Processor
+                - text: ": N/A CPU"
+              - listitem [ref=f14e141]:
+                - strong [ref=f14e142]: RAM
+                - text: ": N/A RAM"
+          - generic [ref=f14e143]:
+            - strong [ref=f14e144]: Choose a viewing period
+            - generic [ref=f14e146]:
+              - generic [ref=f14e147]: Period
+              - generic [ref=f14e148]:
+                - link "30 days" [ref=f14e149] [cursor=pointer]:
+                  - /url: javascript:void(0)
+                - generic [ref=f14e151]: Period
+                - button "30 days" [ref=f14e152]
+              - combobox "Period" [ref=f14e153]:
+                - option "1 hour"
+                - option "6 hours"
+                - option "24 hours"
+                - option "7 days"
+                - option "30 days" [selected]
+                - option "3 months"
+        - generic [ref=f14e154]:
+          - generic [ref=f14e155]:
+            - heading " Disk" [level=2] [ref=f14e156]:
+              - generic [ref=f14e157]: 
+              - text: Disk
+            - link "View details " [ref=f14e158] [cursor=pointer]:
+              - /url: https://admin.alwaysdata.com/account/usage/disk/?range=month&start=2026-10-05T23%3A44%3A22&end=2026-11-05T23%3A44%3A22
+              - text: View details
+              - generic [ref=f14e159]: 
+          - generic [ref=f14e160]:
+            - generic:
+              - strong
+            - generic [ref=f14e161]:
+              - strong
+        - generic [ref=f14e166]:
+          - heading " Processor (CPU)" [level=2] [ref=f14e167]:
+            - generic [ref=f14e168]: 
+            - text: Processor (CPU)
+          - link "View details " [ref=f14e169] [cursor=pointer]:
+            - /url: https://admin.alwaysdata.com/account/usage/cpu/?range=month&start=2026-10-05T23%3A44%3A22&end=2026-11-05T23%3A44%3A22
+            - text: View details
+            - generic [ref=f14e170]: 
+        - generic [ref=f14e175]:
+          - heading " Memory (RAM)" [level=2] [ref=f14e176]:
+            - generic [ref=f14e177]: 
+            - text: Memory (RAM)
+          - link "View details " [ref=f14e178] [cursor=pointer]:
+            - /url: https://admin.alwaysdata.com/account/usage/memory/?range=month&start=2026-10-05T23%3A44%3A22&end=2026-11-05T23%3A44%3A22
+            - text: View details
+            - generic [ref=f14e179]: 
+  - contentinfo [ref=f14e183]:
+    - generic [ref=f14e184]:
+      - link "alwaysdata website":
+        - /url: https://www.alwaysdata.com
+        - img [ref=f14e185] [cursor=pointer]
+    - generic [ref=f14e187]:
+      - generic [ref=f14e188]:
+        - generic [ref=f14e189]: Resources
+        - generic [ref=f14e190]:
+          - generic [ref=f14e191]:
+            - link "Administration" [ref=f14e192] [cursor=pointer]:
+              - /url: https://admin.alwaysdata.com
+            - link "Documentation" [ref=f14e193] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com
+            - link "API" [ref=f14e194] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/api/
+          - generic [ref=f14e195]:
+            - link "Servers status" [ref=f14e196] [cursor=pointer]:
+              - /url: https://status.alwaysdata.com
+            - link "Changelog" [ref=f14e197] [cursor=pointer]:
+              - /url: https://changelog.alwaysdata.com
+            - link "❤️ Support us" [ref=f14e198] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/love/
+      - generic [ref=f14e199]:
+        - generic [ref=f14e200]: More
+        - generic [ref=f14e201]:
+          - generic [ref=f14e202]:
+            - link "Environment" [ref=f14e203] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/environment/
+            - link "Transparency" [ref=f14e204] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/transparency/
+            - link "Alwaysdata Academic Cloud" [ref=f14e205] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/academic-cloud/
+            - link "Open source" [ref=f14e206] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/open-source/
+          - generic [ref=f14e207]:
+            - link "Bug Bounty" [ref=f14e208] [cursor=pointer]:
+              - /url: https://help.alwaysdata.com/bug-bounty
+            - link "Cookies management" [ref=f14e209] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/cookies-policy/
+            - link "Legal notices" [ref=f14e210] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/terms-and-legal/
+            - link "Join us" [ref=f14e211] [cursor=pointer]:
+              - /url: https://www.alwaysdata.com/en/jobs/
+    - generic [ref=f14e212]:
+      - text: All rights reserved, alwaysdata
+      - link [ref=f14e214] [cursor=pointer]:
+        - /url: https://twitter.com/alwaysdata
+  - status [ref=f14e217]
+  - status [ref=f14e218]

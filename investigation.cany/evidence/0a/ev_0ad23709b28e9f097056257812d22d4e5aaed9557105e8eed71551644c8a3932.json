@@ -1,0 +1,994 @@
+{
+  "id": "ev_0ad23709b28e9f097056257812d22d4e5aaed9557105e8eed71551644c8a3932",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_bytes_find",
+  "params": {
+    "encoding": "both",
+    "limit": 100,
+    "offset": 0,
+    "path": null,
+    "pattern": "8A 96 ?? ?? ?? ??",
+    "text": null
+  },
+  "result": {
+    "file_size": 123428776,
+    "limit": 100,
+    "match_cap_reached": false,
+    "matches": [
+      {
+        "address": "0x579634",
+        "bytes": "8a9657001800",
+        "file_offset": 1542708,
+        "file_offset_hex": "0x178a34",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96897d",
+        "bytes": "8a9600d08996",
+        "file_offset": 5668221,
+        "file_offset_hex": "0x567d7d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968985",
+        "bytes": "8a9600000000",
+        "file_offset": 5668229,
+        "file_offset_hex": "0x567d85",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96898d",
+        "bytes": "8a9600180000",
+        "file_offset": 5668237,
+        "file_offset_hex": "0x567d8d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968a35",
+        "bytes": "8a96004400f4",
+        "file_offset": 5668405,
+        "file_offset_hex": "0x567e35",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968a3d",
+        "bytes": "8a96004d00ff",
+        "file_offset": 5668413,
+        "file_offset_hex": "0x567e3d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968a6c",
+        "bytes": "8a9600000004",
+        "file_offset": 5668460,
+        "file_offset_hex": "0x567e6c",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968aa9",
+        "bytes": "8a9600000004",
+        "file_offset": 5668521,
+        "file_offset_hex": "0x567ea9",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968ab9",
+        "bytes": "8a9600070d54",
+        "file_offset": 5668537,
+        "file_offset_hex": "0x567eb9",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968b55",
+        "bytes": "8a9600020003",
+        "file_offset": 5668693,
+        "file_offset_hex": "0x567f55",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x968f6e",
+        "bytes": "8a9600a00300",
+        "file_offset": 5669742,
+        "file_offset_hex": "0x56836e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96903c",
+        "bytes": "8a9600a00300",
+        "file_offset": 5669948,
+        "file_offset_hex": "0x56843c",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96aff6",
+        "bytes": "8a9600104097",
+        "file_offset": 5678070,
+        "file_offset_hex": "0x56a3f6",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96b018",
+        "bytes": "8a9600104097",
+        "file_offset": 5678104,
+        "file_offset_hex": "0x56a418",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96b03d",
+        "bytes": "8a9600104097",
+        "file_offset": 5678141,
+        "file_offset_hex": "0x56a43d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x96b063",
+        "bytes": "8a9600104097",
+        "file_offset": 5678179,
+        "file_offset_hex": "0x56a463",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xaa5f24",
+        "bytes": "8a96ff33c089",
+        "file_offset": 6968100,
+        "file_offset_hex": "0x6a5324",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xaa5f37",
+        "bytes": "8a96ff33d28b",
+        "file_offset": 6968119,
+        "file_offset_hex": "0x6a5337",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xaa8fb7",
+        "bytes": "8a96ff8b4dec",
+        "file_offset": 6980535,
+        "file_offset_hex": "0x6a83b7",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xae7c3b",
+        "bytes": "8a96ff595dc3",
+        "file_offset": 7237691,
+        "file_offset_hex": "0x6e703b",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xae7cab",
+        "bytes": "8a96ff438b45",
+        "file_offset": 7237803,
+        "file_offset_hex": "0x6e70ab",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xae8be4",
+        "bytes": "8a96ff5dc38d",
+        "file_offset": 7241700,
+        "file_offset_hex": "0x6e7fe4",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xae8e78",
+        "bytes": "8a96ff5dc38d",
+        "file_offset": 7242360,
+        "file_offset_hex": "0x6e8278",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xc690fe",
+        "bytes": "8a96c6004200",
+        "file_offset": 8815870,
+        "file_offset_hex": "0x8684fe",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xd119ee",
+        "bytes": "8a966fffebf0",
+        "file_offset": 9506286,
+        "file_offset_hex": "0x910dee",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0xd2030e",
+        "bytes": "8a966eff83f8",
+        "file_offset": 9565966,
+        "file_offset_hex": "0x91f70e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x10e19ee",
+        "bytes": "8a9632ffebea",
+        "file_offset": 13503982,
+        "file_offset_hex": "0xce0dee",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x110923d",
+        "bytes": "8a9610014200",
+        "file_offset": 13665853,
+        "file_offset_hex": "0xd0863d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1296ba2",
+        "bytes": "8a9617ff8d45",
+        "file_offset": 15294370,
+        "file_offset_hex": "0xe95fa2",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x13c9209",
+        "bytes": "8a963c014200",
+        "file_offset": 16549385,
+        "file_offset_hex": "0xfc8609",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1491288",
+        "bytes": "8a961c010000",
+        "file_offset": 17368712,
+        "file_offset_hex": "0x1090688",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x149129e",
+        "bytes": "8a961c010000",
+        "file_offset": 17368734,
+        "file_offset_hex": "0x109069e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x14912c1",
+        "bytes": "8a961c010000",
+        "file_offset": 17368769,
+        "file_offset_hex": "0x10906c1",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x14912ea",
+        "bytes": "8a961e010000",
+        "file_offset": 17368810,
+        "file_offset_hex": "0x10906ea",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x14c9622",
+        "bytes": "8a964c014d00",
+        "file_offset": 17599010,
+        "file_offset_hex": "0x10c8a22",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1532356",
+        "bytes": "8a96edfeb201",
+        "file_offset": 18028374,
+        "file_offset_hex": "0x1131756",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1886ba2",
+        "bytes": "8a96b8fe8d45",
+        "file_offset": 21520290,
+        "file_offset_hex": "0x1485fa2",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1968b70",
+        "bytes": "8a9601897f1c",
+        "file_offset": 22445936,
+        "file_offset_hex": "0x1567f70",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1968b7a",
+        "bytes": "8a9601a18c7d",
+        "file_offset": 22445946,
+        "file_offset_hex": "0x1567f7a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1968c20",
+        "bytes": "8a9601897f1c",
+        "file_offset": 22446112,
+        "file_offset_hex": "0x1568020",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1968c2a",
+        "bytes": "8a9601a18c7d",
+        "file_offset": 22446122,
+        "file_offset_hex": "0x156802a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1978285",
+        "bytes": "8a9601689496",
+        "file_offset": 22509189,
+        "file_offset_hex": "0x1577685",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x197828d",
+        "bytes": "8a9601e48c96",
+        "file_offset": 22509197,
+        "file_offset_hex": "0x157768d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x19784c0",
+        "bytes": "8a9601064372",
+        "file_offset": 22509760,
+        "file_offset_hex": "0x15778c0",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1978ddd",
+        "bytes": "8a9601074765",
+        "file_offset": 22512093,
+        "file_offset_hex": "0x15781dd",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1978e1e",
+        "bytes": "8a9601075365",
+        "file_offset": 22512158,
+        "file_offset_hex": "0x157821e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1978f46",
+        "bytes": "8a9601010000",
+        "file_offset": 22512454,
+        "file_offset_hex": "0x1578346",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1aa355a",
+        "bytes": "8a96fe8bc3e8",
+        "file_offset": 23734618,
+        "file_offset_hex": "0x16a295a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1aa4d54",
+        "bytes": "8a96fe8b55fc",
+        "file_offset": 23740756,
+        "file_offset_hex": "0x16a4154",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1c19680",
+        "bytes": "8a96c1010200",
+        "file_offset": 25266816,
+        "file_offset_hex": "0x1818a80",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x1c2e582",
+        "bytes": "8a967efed845",
+        "file_offset": 25352578,
+        "file_offset_hex": "0x182d982",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x2147c05",
+        "bytes": "8a9600049096",
+        "file_offset": 30699525,
+        "file_offset_hex": "0x1d47005",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".text"
+      },
+      {
+        "address": "0x2174041",
+        "bytes": "8a96542d8996",
+        "file_offset": 30876225,
+        "file_offset_hex": "0x1d72241",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".data"
+      },
+      {
+        "address": "0x256680a",
+        "bytes": "8a9606533076",
+        "file_offset": 34254858,
+        "file_offset_hex": "0x20ab00a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x25af6ad",
+        "bytes": "8a96a0ebebed",
+        "file_offset": 34553517,
+        "file_offset_hex": "0x20f3ead",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x25af76d",
+        "bytes": "8a96a0ebebed",
+        "file_offset": 34553709,
+        "file_offset_hex": "0x20f3f6d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x25e7f6a",
+        "bytes": "8a968e89b86f",
+        "file_offset": 34785130,
+        "file_offset_hex": "0x212c76a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x25eeabc",
+        "bytes": "8a969595f5df",
+        "file_offset": 34812604,
+        "file_offset_hex": "0x21332bc",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x260352e",
+        "bytes": "8a96a45f2e7d",
+        "file_offset": 34897198,
+        "file_offset_hex": "0x2147d2e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x260638a",
+        "bytes": "8a9681bf92e7",
+        "file_offset": 34909066,
+        "file_offset_hex": "0x214ab8a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x278f658",
+        "bytes": "8a96a45f2e7d",
+        "file_offset": 36519512,
+        "file_offset_hex": "0x22d3e58",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x27924b4",
+        "bytes": "8a9681bf92e7",
+        "file_offset": 36531380,
+        "file_offset_hex": "0x22d6cb4",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x29b13b4",
+        "bytes": "8a9600000000",
+        "file_offset": 38752180,
+        "file_offset_hex": "0x24f4fb4",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2a9318a",
+        "bytes": "8a9600008e96",
+        "file_offset": 39677322,
+        "file_offset_hex": "0x25d6d8a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2df3490",
+        "bytes": "8a9601000000",
+        "file_offset": 43217040,
+        "file_offset_hex": "0x2937090",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2ee52de",
+        "bytes": "8a9604001400",
+        "file_offset": 44207838,
+        "file_offset_hex": "0x2a28ede",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2eea9c6",
+        "bytes": "8a9604000000",
+        "file_offset": 44230086,
+        "file_offset_hex": "0x2a2e5c6",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2eeb638",
+        "bytes": "8a9604000000",
+        "file_offset": 44233272,
+        "file_offset_hex": "0x2a2f238",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2f5c2ae",
+        "bytes": "8a9683009796",
+        "file_offset": 44695214,
+        "file_offset_hex": "0x2a9feae",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2f9ea00",
+        "bytes": "8a968c009996",
+        "file_offset": 44967424,
+        "file_offset_hex": "0x2ae2600",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x2fb983a",
+        "bytes": "8a9601008e96",
+        "file_offset": 45077562,
+        "file_offset_hex": "0x2afd43a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x308fe69",
+        "bytes": "8a9600c98a96",
+        "file_offset": 45955689,
+        "file_offset_hex": "0x2bd3a69",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x308fe6d",
+        "bytes": "8a9600cf8a96",
+        "file_offset": 45955693,
+        "file_offset_hex": "0x2bd3a6d",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x308fe71",
+        "bytes": "8a9600dd8a96",
+        "file_offset": 45955697,
+        "file_offset_hex": "0x2bd3a71",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x308fe75",
+        "bytes": "8a9600f68a96",
+        "file_offset": 45955701,
+        "file_offset_hex": "0x2bd3a75",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x308fe79",
+        "bytes": "8a96002e8b96",
+        "file_offset": 45955705,
+        "file_offset_hex": "0x2bd3a79",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3091d61",
+        "bytes": "8a9600010000",
+        "file_offset": 45963617,
+        "file_offset_hex": "0x2bd5961",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x332e9a4",
+        "bytes": "8a960600a97d",
+        "file_offset": 48702884,
+        "file_offset_hex": "0x2e725a4",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x33b512e",
+        "bytes": "8a9602000000",
+        "file_offset": 49253678,
+        "file_offset_hex": "0x2ef8d2e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x340925c",
+        "bytes": "8a9603002e00",
+        "file_offset": 49598044,
+        "file_offset_hex": "0x2f4ce5c",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x36c019e",
+        "bytes": "8a9608000000",
+        "file_offset": 52444574,
+        "file_offset_hex": "0x3203d9e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x384eb0a",
+        "bytes": "8a9609000400",
+        "file_offset": 54077194,
+        "file_offset_hex": "0x339270a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x384ec96",
+        "bytes": "8a9609000000",
+        "file_offset": 54077590,
+        "file_offset_hex": "0x3392896",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x38f3e8a",
+        "bytes": "8a9603001700",
+        "file_offset": 54753930,
+        "file_offset_hex": "0x3437a8a",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x39ec564",
+        "bytes": "8a9603000000",
+        "file_offset": 55771492,
+        "file_offset_hex": "0x3530164",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3bfd3aa",
+        "bytes": "8a960b007dde",
+        "file_offset": 57937834,
+        "file_offset_hex": "0x3740faa",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3cc8204",
+        "bytes": "8a966f01db96",
+        "file_offset": 58768900,
+        "file_offset_hex": "0x380be04",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3f2fc37",
+        "bytes": "8a9601010000",
+        "file_offset": 61290551,
+        "file_offset_hex": "0x3a73837",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3f2fc93",
+        "bytes": "8a9601010000",
+        "file_offset": 61290643,
+        "file_offset_hex": "0x3a73893",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3f2fd25",
+        "bytes": "8a9601010000",
+        "file_offset": 61290789,
+        "file_offset_hex": "0x3a73925",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x3fdbb18",
+        "bytes": "8a96a2019b96",
+        "file_offset": 61994776,
+        "file_offset_hex": "0x3b1f718",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x4047634",
+        "bytes": "8a96af019c96",
+        "file_offset": 62435892,
+        "file_offset_hex": "0x3b8b234",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x40da132",
+        "bytes": "8a96ba019296",
+        "file_offset": 63036722,
+        "file_offset_hex": "0x3c1dd32",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x411f556",
+        "bytes": "8a9604000000",
+        "file_offset": 63320406,
+        "file_offset_hex": "0x3c63156",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x413fe4c",
+        "bytes": "8a960e00fb9a",
+        "file_offset": 63453772,
+        "file_offset_hex": "0x3c83a4c",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x42107dc",
+        "bytes": "8a9600008e96",
+        "file_offset": 64308188,
+        "file_offset_hex": "0x3d543dc",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x425aa12",
+        "bytes": "8a9600000000",
+        "file_offset": 64611858,
+        "file_offset_hex": "0x3d9e612",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x42da92e",
+        "bytes": "8a9601000000",
+        "file_offset": 65135918,
+        "file_offset_hex": "0x3e1e52e",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x434a0f6",
+        "bytes": "8a9602000000",
+        "file_offset": 65592566,
+        "file_offset_hex": "0x3e8dcf6",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      },
+      {
+        "address": "0x4465116",
+        "bytes": "8a960e00fb9a",
+        "file_offset": 66751766,
+        "file_offset_hex": "0x3fa8d16",
+        "length": 6,
+        "matched": "pattern",
+        "section": ".debug"
+      }
+    ],
+    "native_container": "pe",
+    "offset": 0,
+    "path": "C:\\RRPG\\rrpg.exe",
+    "searched_for": [
+      {
+        "kind": "pattern",
+        "length": 6
+      }
+    ],
+    "total_matches": 158
+  },
+  "summary": "158 match(es) for pattern in rrpg.exe; showing 100 from #0.",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "file_bytes_only",
+      "message": "The file's bytes are searched as stored: compressed, encrypted or packed regions and data built at run time are not seen, so no match is not proof of absence."
+    },
+    {
+      "code": "unmapped_regions",
+      "message": "Matches in headers, overlays or debug data that are not loaded into memory have no virtual address."
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 100,
+    "total": 158,
+    "next_offset": 100
+  },
+  "locations": [
+    {
+      "kind": "file_offset",
+      "value": "0x178a34"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567d7d"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567d85"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567d8d"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567e35"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567e3d"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567e6c"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x567ea9"
+    }
+  ],
+  "links": []
+}

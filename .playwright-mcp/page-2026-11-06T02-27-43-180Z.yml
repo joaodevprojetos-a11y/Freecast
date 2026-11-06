@@ -1,0 +1,39 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - generic [ref=f4e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=f4e10]
+      - paragraph [ref=f4e11]: Mesa virtual independente
+    - generic [ref=f4e12]:
+      - navigation "Navegação principal" [ref=f4e13]:
+        - button "Lobby" [ref=f4e14] [cursor=pointer]
+        - button "Mesa" [disabled] [ref=f4e18]
+        - button "Campanhas" [disabled] [ref=f4e19]
+        - button "Fichas" [disabled] [ref=f4e20]
+      - generic [ref=f4e21]:
+        - status [ref=f4e22]: Entre para jogar
+        - button "Entrar em tela cheia" [ref=f4e24] [cursor=pointer]
+  - alert [ref=f4e30]: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+  - main [ref=f4e31]:
+    - generic [ref=f4e32]:
+      - generic [ref=f4e33]:
+        - paragraph [ref=f4e34]: Espaço de jogo
+        - heading "Salas de RPG" [level=2] [ref=f4e35]
+        - paragraph [ref=f4e36]: Crie uma sala pública ou entre em uma sala listada. A conta é local a este servidor.
+      - generic [ref=f4e37]:
+        - generic [ref=f4e38]:
+          - paragraph [ref=f4e39]: Conta local
+          - heading "Entrar na mesa" [level=3] [ref=f4e40]
+          - paragraph [ref=f4e41]: A senha é armazenada como hash no banco local. Não use uma senha de outro serviço.
+          - generic [ref=f4e42]:
+            - generic [ref=f4e43]:
+              - text: Nome de usuário
+              - textbox "Nome de usuário" [ref=f4e44]
+            - generic [ref=f4e45]:
+              - text: Senha
+              - textbox "Senha" [ref=f4e46]
+            - button "Entrar" [ref=f4e47] [cursor=pointer]
+          - button "Ainda não tenho conta" [ref=f4e48] [cursor=pointer]
+        - complementary [ref=f4e49]:
+          - heading "Demonstração pública" [level=3] [ref=f4e50]
+          - paragraph [ref=f4e51]: A sala inicial é compartilhada com qualquer usuário que entrar. Não coloque dados sensíveis nela.
+          - paragraph [ref=f4e52]: "Estado do servidor: Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"

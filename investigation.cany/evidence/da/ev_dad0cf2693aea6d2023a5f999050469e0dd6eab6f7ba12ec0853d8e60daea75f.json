@@ -1,0 +1,49 @@
+{
+  "id": "ev_dad0cf2693aea6d2023a5f999050469e0dd6eab6f7ba12ec0853d8e60daea75f",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 10,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "RCRollDados"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      }
+    ],
+    "total": 1
+  },
+  "summary": "1 strings match \"RCRollDados\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "complete",
+    "examined": 1,
+    "total": 1
+  },
+  "locations": [],
+  "links": []
+}

@@ -1,0 +1,164 @@
+{
+  "id": "ev_7c0eaaf0324f2e3587a56546f51721dbc6e484752174cc53b777ad7eab797413",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 20,
+    "mode": "literal",
+    "offset": 20,
+    "pattern": "Roll"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x2551dac",
+        "references": [],
+        "section": ".rsrc",
+        "text": "The domain controller certificate used for smartcard logon has been revoked. Please contact your system administrator with the contents of your system event log.IA signature operation must be performed before the user can authenticate.AOne or more of the parameters passed to the function was invalid.DClient policy does not allow credential delegation to target server.9The number of maximum ticket referrals has been exceeded.KThe local machine must be a Kerberos KDC (domain controller) and it is not.qThe other end of the security negotiation is requires strong crypto but it is not supported on the local machine.5The KDC reply contained more than one principal name.OExpected to find PA data for a hint of what etype to use, but it was not found."
+      },
+      {
+        "address": "0x255718e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "A descendant of TStyledPresentationProxy has not been registered for class %s.\r\nMaybe it is necessary to add the %s module to the uses section;|AOwner| should be an instance of TCustomPresentedScrollBoxPCould not create styled presentation because CreateAniCalculations returned nil.QKey cannot be empty. Data model cannot set or get data by key with an empty name.!AFormat parameter cannot be empty"
+      },
+      {
+        "address": "0x255860c",
+        "references": [],
+        "section": ".rsrc",
+        "text": "No %s implementation found+Bitmap size must be equal in copy operationJCannot create %s, because |CreateScrollContent| must return not nil objectPPresentation received nil Content from TPresentedControl. Content cannot be nil."
+      },
+      {
+        "address": "0x255989a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "None\nScroll Bar"
+      },
+      {
+        "address": "0x255ae08",
+        "references": [],
+        "section": ".rsrc",
+        "text": " - Dock zone has no controlLError loading dock zone from the stream. Expecting version %d, but found %d.\tCustom...,Multiselect mode must be on for this feature7Length of value array must be >= length of prompt array"
+      },
+      {
+        "address": "0x255b5a0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Scrollbar property out of range"
+      },
+      {
+        "address": "0x256d217",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Threads.GrowControlledParallelJobPool"
+      },
+      {
+        "address": "0x256dd8e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.RollMaterialFormat"
+      },
+      {
+        "address": "0x256e3c9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "FMX.ScrollBox"
+      },
+      {
+        "address": "0x256e3d8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "}FMX.ScrollBox.Win"
+      },
+      {
+        "address": "0x256e3ed",
+        "references": [],
+        "section": ".rsrc",
+        "text": "FMX.ScrollBox.Style"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x2571f79",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBox"
+      },
+      {
+        "address": "0x2573d27",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TVertScrollBox\tsbxTracks"
+      },
+      {
+        "address": "0x257448d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "THorzScrollBox\nsbxMembers"
+      },
+      {
+        "address": "0x257a6cc",
+        "references": [],
+        "section": ".rsrc",
+        "text": "THorzScrollBox"
+      },
+      {
+        "address": "0x257a967",
+        "references": [],
+        "section": ".rsrc",
+        "text": "VertScrollBar.Tracking\t"
+      },
+      {
+        "address": "0x257f1b3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x257f218",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTScrollBar"
+      },
+      {
+        "address": "0x25803a3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nScrollBars"
+      }
+    ],
+    "total": 341
+  },
+  "summary": "341 strings match \"Roll\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 20,
+    "total": 341,
+    "next_offset": 40
+  },
+  "locations": [],
+  "links": []
+}

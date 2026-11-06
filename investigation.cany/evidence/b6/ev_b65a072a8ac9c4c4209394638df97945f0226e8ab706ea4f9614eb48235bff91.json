@@ -1,0 +1,73 @@
+{
+  "id": "ev_b65a072a8ac9c4c4209394638df97945f0226e8ab706ea4f9614eb48235bff91",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 30,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "Rolar"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x25950e9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "3Controlar automaticamente o volume do meu microfone"
+      },
+      {
+        "address": "0x2595b99",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Quando rolar dados"
+      },
+      {
+        "address": "0x25d0ae9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Rolar Dados"
+      },
+      {
+        "address": "0x25d21e4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "ENTER = Rolar dados"
+      },
+      {
+        "address": "0x25d2367",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Não é possível rolar aqui!"
+      }
+    ],
+    "total": 5
+  },
+  "summary": "5 strings match \"Rolar\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "complete",
+    "examined": 5,
+    "total": 5
+  },
+  "locations": [],
+  "links": []
+}

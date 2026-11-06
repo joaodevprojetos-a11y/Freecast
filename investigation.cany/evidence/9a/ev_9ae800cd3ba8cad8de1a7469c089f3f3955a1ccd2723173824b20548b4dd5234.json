@@ -1,0 +1,126 @@
+{
+  "id": "ev_9ae800cd3ba8cad8de1a7469c089f3f3955a1ccd2723173824b20548b4dd5234",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_bytes_find",
+  "params": {
+    "encoding": "utf8",
+    "limit": 100,
+    "offset": 0,
+    "path": null,
+    "pattern": null,
+    "text": "RCRollDados"
+  },
+  "result": {
+    "file_size": 123428776,
+    "limit": 100,
+    "match_cap_reached": false,
+    "matches": [
+      {
+        "address": "0x1f9698a",
+        "bytes": "5243526f6c6c4461646f73",
+        "file_offset": 28925322,
+        "file_offset_hex": "0x1b95d8a",
+        "length": 11,
+        "matched": "utf8",
+        "section": ".text"
+      },
+      {
+        "address": "0x215c236",
+        "bytes": "5243526f6c6c4461646f73",
+        "file_offset": 30783030,
+        "file_offset_hex": "0x1d5b636",
+        "length": 11,
+        "matched": "utf8",
+        "section": ".text"
+      },
+      {
+        "address": "0x256f3f8",
+        "bytes": "5243526f6c6c4461646f73",
+        "file_offset": 34290680,
+        "file_offset_hex": "0x20b3bf8",
+        "length": 11,
+        "matched": "utf8",
+        "section": ".rsrc"
+      },
+      {
+        "address": "0x60f1df3",
+        "bytes": "5243526f6c6c4461646f73",
+        "file_offset": 96688627,
+        "file_offset_hex": "0x5c359f3",
+        "length": 11,
+        "matched": "utf8",
+        "section": ".debug"
+      },
+      {
+        "address": "0x7764f10",
+        "bytes": "5243526f6c6c4461646f73",
+        "file_offset": 120228624,
+        "file_offset_hex": "0x72a8b10",
+        "length": 11,
+        "matched": "utf8",
+        "section": ".debug"
+      }
+    ],
+    "native_container": "pe",
+    "offset": 0,
+    "path": "C:\\RRPG\\rrpg.exe",
+    "searched_for": [
+      {
+        "kind": "utf8",
+        "length": 11
+      }
+    ],
+    "total_matches": 5
+  },
+  "summary": "5 match(es) for utf8 in rrpg.exe; showing 5 from #0.",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "file_bytes_only",
+      "message": "The file's bytes are searched as stored: compressed, encrypted or packed regions and data built at run time are not seen, so no match is not proof of absence."
+    },
+    {
+      "code": "unmapped_regions",
+      "message": "Matches in headers, overlays or debug data that are not loaded into memory have no virtual address."
+    }
+  ],
+  "coverage": {
+    "status": "complete",
+    "examined": 5,
+    "total": 5
+  },
+  "locations": [
+    {
+      "kind": "file_offset",
+      "value": "0x1b95d8a"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x1d5b636"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x20b3bf8"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x5c359f3"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x72a8b10"
+    }
+  ],
+  "links": []
+}

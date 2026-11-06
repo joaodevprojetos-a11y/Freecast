@@ -1,0 +1,42 @@
+{
+  "id": "ev_d8c761b84fd6bdc83fbb8147b0f21ef96d3063f166eed9e9797f87edcc1c62b1",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_bytes_show",
+  "params": {
+    "address": "0x215c236",
+    "length": 128
+  },
+  "result": {
+    "address": "0x215c236",
+    "ascii": "RCRollDados.RCReqPermContato.RCAddContato.RSSelChao.RCScene.RCSceTamanhoObjeto.RCSceneObjs.RRPG3DMatrix.RRPG3DEngine.RCScenes.RC",
+    "file_offset": 30783030,
+    "hex": "5243526f6c6c4461646f731052435265715065726d436f6e7461746f0c5243416464436f6e7461746f09525353656c4368616f0752435363656e6512524353636554616d616e686f4f626a65746f0b52435363656e654f626a730c5252504733444d61747269780c525250473344456e67696e650852435363656e65730a5243",
+    "length": 128
+  },
+  "summary": "128 bytes at 0x215c236.",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [],
+  "coverage": {
+    "status": "complete",
+    "examined": 128,
+    "total": 128
+  },
+  "locations": [
+    {
+      "kind": "address",
+      "value": "0x215c236"
+    }
+  ],
+  "links": []
+}

@@ -1,0 +1,36 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e9]:
+      - heading "Rorphic RPG (RRPG)" [level=1] [ref=e10]
+      - paragraph [ref=e11]: Mesa virtual independente
+    - generic [ref=e12]:
+      - navigation "Navegação principal" [ref=e13]:
+        - button "Lobby" [ref=e14] [cursor=pointer]
+        - button "Mesa" [ref=e18] [cursor=pointer]
+        - button "Campanhas" [ref=e19] [cursor=pointer]
+        - button "Fichas" [active] [ref=e20] [cursor=pointer]
+      - generic [ref=e21]:
+        - status [ref=e22]: Sala de Teste UI · sincronizada
+        - generic [ref=e55]: PlaywrightTestRRPG
+        - button "Sair" [ref=e56] [cursor=pointer]
+        - button "Entrar em tela cheia" [ref=e24] [cursor=pointer]
+  - status [ref=e57]: Sessão iniciada como PlaywrightTestRRPG.
+  - main [ref=e274]:
+    - generic [ref=e300]:
+      - paragraph [ref=e301]: Sala de Teste UI
+      - heading "Fichas de personagem" [level=2] [ref=e339]
+      - generic [ref=e303]:
+        - heading "Criar ficha" [level=3] [ref=e340]
+        - generic [ref=e305]:
+          - text: Nome
+          - textbox "Nome" [ref=e306]
+        - generic [ref=e307]:
+          - text: Campanha
+          - combobox "Campanha" [ref=e341]:
+            - option "Sem campanha" [selected]
+            - option "Crônica de Teste"
+        - generic [ref=e342]:
+          - text: Dados JSON da ficha
+          - textbox "Dados JSON da ficha" [ref=e343]: "{}"
+        - button "Criar ficha" [ref=e345] [cursor=pointer]
+      - paragraph [ref=e346]: Você ainda não tem fichas nesta sala.

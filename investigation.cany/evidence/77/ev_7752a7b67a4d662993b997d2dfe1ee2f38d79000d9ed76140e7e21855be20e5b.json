@@ -1,0 +1,67 @@
+{
+  "id": "ev_7752a7b67a4d662993b997d2dfe1ee2f38d79000d9ed76140e7e21855be20e5b",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 200,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "RollDados"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x2504c5a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TFRMREQPERMCONTATO\rTFRMROLLDADOS"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x25d0a91",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\rTfrmRollDados"
+      },
+      {
+        "address": "0x25d0aa0",
+        "references": [],
+        "section": ".rsrc",
+        "text": "frmRollDados\nAlphaBlend\t"
+      }
+    ],
+    "total": 4
+  },
+  "summary": "4 strings match \"RollDados\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "complete",
+    "examined": 4,
+    "total": 4
+  },
+  "locations": [],
+  "links": []
+}

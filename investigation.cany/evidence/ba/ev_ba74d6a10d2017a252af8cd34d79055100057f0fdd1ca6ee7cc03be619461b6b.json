@@ -1,0 +1,42 @@
+{
+  "id": "ev_ba74d6a10d2017a252af8cd34d79055100057f0fdd1ca6ee7cc03be619461b6b",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_function_find",
+  "params": {
+    "address": "0x1f9698a"
+  },
+  "result": {
+    "address": "0x1f9698a",
+    "function": null,
+    "reason": "not inside any discovered function"
+  },
+  "summary": "0x1f9698a isn't inside a known function.",
+  "confidence": "derived",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "not_found",
+      "message": "the address may be in code the engine didn't discover (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "unknown"
+  },
+  "locations": [
+    {
+      "kind": "address",
+      "value": "0x1f9698a"
+    }
+  ],
+  "links": []
+}

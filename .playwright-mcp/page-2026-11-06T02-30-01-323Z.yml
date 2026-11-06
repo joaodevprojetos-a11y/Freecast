@@ -1,0 +1,36 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - link " Français" [ref=e7] [cursor=pointer]:
+      - /url: /language/fr/?redirect_from=/login/%3Fnext%3D/
+      - generic [ref=e8]: 
+      - text: Français
+  - generic [ref=e9]:
+    - 'heading "Login to: administration" [level=1] [ref=e12]'
+    - generic [ref=e13]:
+      - form [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: Email*
+          - textbox "Email*" [active] [ref=e19]
+        - generic [ref=e20]:
+          - generic [ref=e21]: Password*
+          - textbox "Password*" [ref=e24]
+        - generic [ref=e27] [cursor=pointer]:
+          - checkbox "Stay logged in for 2 weeks" [ref=e28]
+          - text: Stay logged in for 2 weeks
+        - button "Login" [ref=e29] [cursor=pointer]
+        - generic [ref=e31]:
+          - link "Password forgotten" [ref=e32] [cursor=pointer]:
+            - /url: /password/lost/
+          - text: •
+          - link "Other issues" [ref=e33] [cursor=pointer]:
+            - /url: https://help.alwaysdata.com/signin-issues/
+          - text: •
+          - link "Register" [ref=e34] [cursor=pointer]:
+            - /url: https://www.alwaysdata.com/en/register/
+      - paragraph [ref=e35]:
+        - generic [ref=e36]: or
+      - generic [ref=e37]:
+        - link "Continue with Google" [ref=e38] [cursor=pointer]:
+          - /url: /oauth/google/login/
+        - link "Continue with Apple" [ref=e40] [cursor=pointer]:
+          - /url: /oauth/apple/login/

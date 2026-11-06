@@ -1,0 +1,344 @@
+{
+  "id": "ev_501ca74aecfc32366e20ac8c602b3e2b1ca452c958e5600c5815111a6c752ab3",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_strings_find",
+  "params": {
+    "case_sensitive": false,
+    "limit": 50,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "Dados"
+  },
+  "result": {
+    "matches": [
+      {
+        "address": "0x2504c5a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "TFRMREQPERMCONTATO\rTFRMROLLDADOS"
+      },
+      {
+        "address": "0x256dbdb",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.FMXRenderer"
+      },
+      {
+        "address": "0x256dbf4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Consts"
+      },
+      {
+        "address": "0x256dc08",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Engine"
+      },
+      {
+        "address": "0x256dcb6",
+        "references": [],
+        "section": ".rsrc",
+        "text": "&RRPG.Dados.FaceResults3D"
+      },
+      {
+        "address": "0x256dcd2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.CommProtocol"
+      },
+      {
+        "address": "0x256dd4d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.SkinMaterial"
+      },
+      {
+        "address": "0x256dd8e",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.RollMaterialFormat"
+      },
+      {
+        "address": "0x256ddf2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RRPG.Dados.Physics"
+      },
+      {
+        "address": "0x256f084",
+        "references": [],
+        "section": ".rsrc",
+        "text": "%RRPG.Dados.VCLRenderer"
+      },
+      {
+        "address": "0x256f3f8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "RCRollDados"
+      },
+      {
+        "address": "0x256f823",
+        "references": [],
+        "section": ".rsrc",
+        "text": "=RCDados3DLoader"
+      },
+      {
+        "address": "0x257fe68",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258077b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2580c4b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258332d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2583a7b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x258440f",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2584d02",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2585fc7",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2589b59",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2593421",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25934d9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "labAlertDados3D"
+      },
+      {
+        "address": "0x2593c95",
+        "references": [],
+        "section": ".rsrc",
+        "text": "\nTRCheckBox\ncbxDados3D"
+      },
+      {
+        "address": "0x2593cd8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Mostrar animações de dados em 3D"
+      },
+      {
+        "address": "0x2593da2",
+        "references": [],
+        "section": ".rsrc",
+        "text": "btnPersonalizarDados"
+      },
+      {
+        "address": "0x2593e0d",
+        "references": [],
+        "section": ".rsrc",
+        "text": "btnPersonalizarDadosClick"
+      },
+      {
+        "address": "0x2595b66",
+        "references": [],
+        "section": ".rsrc",
+        "text": "cbxSomDados"
+      },
+      {
+        "address": "0x2595b99",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Quando rolar dados"
+      },
+      {
+        "address": "0x2595ec3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "cbxDados3DVerdes"
+      },
+      {
+        "address": "0x2595eff",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Meus dados 3D estão em tons verdes ou escuros demais =/"
+      },
+      {
+        "address": "0x259640a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2596ba6",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25971e8",
+        "references": [],
+        "section": ".rsrc",
+        "text": "- Sua conta poderá não ser apagada, a fim de manter o registro de dados históricos."
+      },
+      {
+        "address": "0x25977b3",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2597eff",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x259876c",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2599518",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x2599ca4",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25b52b1",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25b5e22",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25c13c9",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25c1eff",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25c3c8a",
+        "references": [],
+        "section": ".rsrc",
+        "text": "panDados"
+      },
+      {
+        "address": "0x25cad19",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25cbce5",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25cbd40",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25cbd9b",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25cbdf7",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      },
+      {
+        "address": "0x25cbe56",
+        "references": [],
+        "section": ".rsrc",
+        "text": "Dados"
+      }
+    ],
+    "total": 65
+  },
+  "summary": "65 strings match \"Dados\".",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "data_sections_only",
+      "message": "only strings stored in the file are searched (absence is not proof)"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 50,
+    "total": 65,
+    "next_offset": 50
+  },
+  "locations": [],
+  "links": []
+}

@@ -1,0 +1,48 @@
+{
+  "id": "ev_0b3aa8f8e8fc80fecc68e57a4356519d8a7c27fa2899adb0f8d4ec9aa97baf2f",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_xrefs_list",
+  "params": {
+    "address": "0x1f9698a",
+    "limit": 200,
+    "offset": 0
+  },
+  "result": {
+    "address": "0x1f9698a",
+    "name": null,
+    "references_from": [],
+    "references_to": [],
+    "total_to": 0
+  },
+  "summary": "0x1f9698a is referenced from 0 places and refers to 0.",
+  "confidence": "derived",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "static_references",
+      "message": "references made through computed pointers at run time are not seen"
+    }
+  ],
+  "coverage": {
+    "status": "complete",
+    "examined": 0,
+    "total": 0
+  },
+  "locations": [
+    {
+      "kind": "address",
+      "value": "0x1f9698a"
+    }
+  ],
+  "links": []
+}

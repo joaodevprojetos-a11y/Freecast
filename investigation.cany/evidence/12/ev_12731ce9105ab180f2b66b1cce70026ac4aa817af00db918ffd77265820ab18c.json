@@ -1,0 +1,156 @@
+{
+  "id": "ev_12731ce9105ab180f2b66b1cce70026ac4aa817af00db918ffd77265820ab18c",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_functions_search",
+  "params": {
+    "case_sensitive": false,
+    "limit": 20,
+    "mode": "literal",
+    "offset": 0,
+    "pattern": "Roll"
+  },
+  "result": {
+    "functions": 3,
+    "imports": 15,
+    "matches": [
+      {
+        "address": "0x41d728",
+        "demangled": null,
+        "kind": "function",
+        "name": "GetScrollInfo@thunk",
+        "size": 6
+      },
+      {
+        "address": "0x41da78",
+        "demangled": null,
+        "kind": "function",
+        "name": "SetScrollInfo@thunk",
+        "size": 6
+      },
+      {
+        "address": "0x502118",
+        "demangled": null,
+        "kind": "function",
+        "name": "FlatSB_SetScrollInfo@thunk",
+        "size": 6
+      },
+      {
+        "address": "0x227dd4c",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "ShowScrollBar"
+      },
+      {
+        "address": "0x227dd70",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "SetScrollRange"
+      },
+      {
+        "address": "0x227dd74",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "SetScrollPos"
+      },
+      {
+        "address": "0x227dd78",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "SetScrollInfo"
+      },
+      {
+        "address": "0x227ddbc",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "ScrollWindow"
+      },
+      {
+        "address": "0x227debc",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "GetScrollRange"
+      },
+      {
+        "address": "0x227dec0",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "GetScrollPos"
+      },
+      {
+        "address": "0x227dec4",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "GetScrollInfo"
+      },
+      {
+        "address": "0x227dec8",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "GetScrollBarInfo"
+      },
+      {
+        "address": "0x227dfb0",
+        "kind": "import",
+        "library": "user32.dll",
+        "name": "EnableScrollBar"
+      },
+      {
+        "address": "0x227e6b0",
+        "kind": "import",
+        "library": "comctl32.dll",
+        "name": "FlatSB_SetScrollProp"
+      },
+      {
+        "address": "0x227e6b4",
+        "kind": "import",
+        "library": "comctl32.dll",
+        "name": "FlatSB_SetScrollPos"
+      },
+      {
+        "address": "0x227e6b8",
+        "kind": "import",
+        "library": "comctl32.dll",
+        "name": "FlatSB_SetScrollInfo"
+      },
+      {
+        "address": "0x227e6bc",
+        "kind": "import",
+        "library": "comctl32.dll",
+        "name": "FlatSB_GetScrollPos"
+      },
+      {
+        "address": "0x227e6c0",
+        "kind": "import",
+        "library": "comctl32.dll",
+        "name": "FlatSB_GetScrollInfo"
+      }
+    ],
+    "total": 18
+  },
+  "summary": "3 functions and 15 imports match \"Roll\".",
+  "confidence": "derived",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [
+    {
+      "code": "function_limit",
+      "message": "function discovery stopped after 50000 functions; the function list is incomplete and some code is not analysed"
+    }
+  ],
+  "coverage": {
+    "status": "partial",
+    "examined": 18,
+    "total": 18
+  },
+  "locations": [],
+  "links": []
+}

@@ -1,0 +1,43 @@
+{
+  "id": "ev_aeb9dba32f48cb771e4429e52f033ab46eda2e66ee6f81850b7d59f3859913b7",
+  "subject": {
+    "kind": "pe",
+    "sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "name": "rrpg.exe"
+  },
+  "operation": "native_address_offset_show",
+  "params": {
+    "address": "0x1f9698a"
+  },
+  "result": {
+    "address": "0x1f9698a",
+    "file_offset": 28925322,
+    "file_offset_hex": "0x1b95d8a",
+    "file_sha256": "03934bceed34f93f4c014d86e93837215abe174590d6f5fd4eeea0eb773636e7",
+    "section": ".text"
+  },
+  "summary": "0x1f9698a is at file offset 0x1b95d8a in .text.",
+  "confidence": "observed",
+  "authority": "original-files",
+  "environment": {
+    "clean_room": false,
+    "engine": "builtin",
+    "engine_version": "0.3.0",
+    "host": "windows-x86_64"
+  },
+  "limitations": [],
+  "coverage": {
+    "status": "unknown"
+  },
+  "locations": [
+    {
+      "kind": "address",
+      "value": "0x1f9698a"
+    },
+    {
+      "kind": "file_offset",
+      "value": "0x1b95d8a"
+    }
+  ],
+  "links": []
+}
