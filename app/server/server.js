@@ -25,6 +25,13 @@ const DEMO_ROOM_ID = 'demo';
 const PASSWORD_MIN_LENGTH = 12;
 const MAX_WEBSOCKET_MESSAGES = 50;
 const WEBSOCKET_MESSAGE_WINDOW_MS = 10000;
+const DND5E_SKILLS = {
+  acrobatics: 'dex', animalHandling: 'wis', arcana: 'int', athletics: 'str',
+  deception: 'cha', history: 'int', insight: 'wis', intimidation: 'cha',
+  investigation: 'int', medicine: 'wis', nature: 'int', perception: 'wis',
+  performance: 'cha', persuasion: 'cha', religion: 'int', sleightOfHand: 'dex',
+  stealth: 'dex', survival: 'wis'
+};
 
 function createEmptyRoomState() {
   return { tokens: [], messages: [], diceRolls: [] };
@@ -91,11 +98,11 @@ function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.
   const username = actor?.username || 'Convidado (sem autenticação)';
   switch (message.type) {
     case 'MOVE_TOKEN': {
-      if (actor && actor.role !== 'gm') {
-        return { type: 'ERROR', payload: { message: 'Somente o mestre pode mover tokens nesta versão.' } };
-      }
       const { id, x, y } = message.payload;
       const token = state.tokens.find(item => item.id === id);
+      if (actor && actor.role !== 'gm' && (actor.role !== 'player' || token?.assignedUserId !== actor.id)) {
+        return { type: 'ERROR', payload: { message: 'Você só pode mover tokens atribuídos a você.' } };
+      }
       if (!token || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= GRID_SIZE || y >= GRID_SIZE) {
         return { type: 'ERROR', payload: { message: 'Movimento inválido.' } };
       }
@@ -104,6 +111,9 @@ function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.
       return { type: 'STATE_UPDATE', payload: state };
     }
     case 'ROLL_DICE': {
+      if (actor?.role === 'spectator') {
+        return { type: 'ERROR', payload: { message: 'Espectadores podem conversar, mas não rolar dados.' } };
+      }
       const { expression } = message.payload;
       const roll = rollDice(expression, randomInt);
       if (!roll) return { type: 'ERROR', payload: { message: 'Expressão de dados inválida ou fora dos limites.' } };
@@ -122,6 +132,34 @@ function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.
         id: `m_${crypto.randomUUID()}`,
         user: 'Dados',
         text: `${username} rolou ${entry.expression}: ${roll.rolls.join(', ')} (total ${roll.total})`,
+        time: timestamp,
+        createdAt: now.toISOString()
+      });
+      state.messages.length = Math.min(state.messages.length, 100);
+      return { type: 'STATE_UPDATE', payload: state };
+    }
+    case 'ROLL_CHARACTER_CHECK': {
+      if (actor?.role === 'spectator') {
+        return { type: 'ERROR', payload: { message: 'Espectadores podem conversar, mas não rolar dados.' } };
+      }
+      const { kind, key } = message.payload;
+      const check = rollCharacterCheck(actor?.character, kind, key, randomInt);
+      if (!check) return { type: 'ERROR', payload: { message: 'Ficha ou teste D&D 5E inválido.' } };
+      const entry = {
+        id: `d_${crypto.randomUUID()}`,
+        user: username,
+        expression: check.expression,
+        result: check.result,
+        total: check.total,
+        time: timestamp,
+        createdAt: now.toISOString()
+      };
+      state.diceRolls.unshift(entry);
+      state.diceRolls.length = Math.min(state.diceRolls.length, 50);
+      state.messages.unshift({
+        id: `m_${crypto.randomUUID()}`,
+        user: 'Dados',
+        text: `${username} rolou ${check.checkName} (${entry.expression}): ${check.rolls.join(', ')} (total ${check.total})`,
         time: timestamp,
         createdAt: now.toISOString()
       });
@@ -149,6 +187,27 @@ function processMessage(rawMessage, state, now = new Date(), randomInt = crypto.
     default:
       return { type: 'ERROR', payload: { message: 'Ação desconhecida.' } };
   }
+}
+
+function rollCharacterCheck(character, kind, key, randomInt = crypto.randomInt) {
+  if (character?.data?.system !== 'dnd5e' || !['ability', 'savingThrow', 'skill'].includes(kind)) return null;
+  const skillAbility = kind === 'skill' ? DND5E_SKILLS[key] : key;
+  if (!skillAbility || !['str', 'dex', 'con', 'int', 'wis', 'cha'].includes(skillAbility)) return null;
+  if (kind === 'skill' && !Object.hasOwn(DND5E_SKILLS, key)) return null;
+  const score = character.data.abilities?.[skillAbility];
+  const proficiencyBonus = character.data.proficiencyBonus;
+  if (!Number.isInteger(score) || score < 1 || score > 30 || !Number.isInteger(proficiencyBonus) || proficiencyBonus < 2 || proficiencyBonus > 6) return null;
+  const proficiencies = kind === 'savingThrow'
+    ? character.data.proficientSaves
+    : character.data.proficientSkills;
+  const proficient = Array.isArray(proficiencies) && proficiencies.includes(key);
+  const modifier = Math.floor((score - 10) / 2) + (proficient ? proficiencyBonus : 0);
+  const dice = rollDice(`1d20${modifier < 0 ? modifier : `+${modifier}`}`, randomInt);
+  if (!dice) return null;
+  const checkName = kind === 'skill'
+    ? key.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)
+    : `${kind === 'savingThrow' ? 'teste de resistência' : 'teste de habilidade'} ${skillAbility.toUpperCase()}`;
+  return { ...dice, expression: `1d20${modifier < 0 ? modifier : `+${modifier}`}`, checkName };
 }
 
 async function createAppServer(options = {}) {
@@ -185,7 +244,6 @@ async function createAppServer(options = {}) {
     ? await createPostgresStore(connectionString)
     : createSqliteStore(options.dbPath);
   const rateLimitBuckets = new Map();
-  if (!await db.loadRoomState(DEMO_ROOM_ID)) await db.persistRoomState(DEMO_ROOM_ID, createInitialState());
   const roomStates = new Map();
   const roomQueues = new Map();
   const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 });
@@ -247,6 +305,8 @@ async function createAppServer(options = {}) {
     const name = typeof body?.name === 'string' ? body.name.trim() : '';
     const data = body?.data === undefined ? {} : body.data;
     const campaignId = body?.campaignId || null;
+    const ownerUserId = typeof body?.ownerUserId === 'string' ? body.ownerUserId : null;
+    const visibility = body?.visibility === 'room' ? 'room' : 'private';
     if (!name || name.length > 60 || !data || typeof data !== 'object' || Array.isArray(data)) return null;
     if (campaignId !== null && typeof campaignId !== 'string') return null;
     if (Buffer.byteLength(JSON.stringify(data), 'utf8') > 12000) return null;
@@ -254,7 +314,75 @@ async function createAppServer(options = {}) {
       const campaign = await db.getCampaign(campaignId);
       if (!campaign || campaign.roomId !== roomId) return null;
     }
-    return { name, data, campaignId };
+    return { name, data, campaignId, visibility, ownerUserId };
+  }
+
+  function parsePublicUrl(value) {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value !== 'string' || value.length > 2048) return undefined;
+    try {
+      const url = new URL(value);
+      if (!['http:', 'https:'].includes(url.protocol) || !url.hostname) return undefined;
+      return url.toString();
+    } catch {
+      return undefined;
+    }
+  }
+
+  async function validLibraryFields(body, roomId, currentItem = null) {
+    const name = typeof body?.name === 'string' ? body.name.trim() : '';
+    const parentId = body?.parentId || null;
+    const visibility = body?.visibility === 'room' ? 'room' : 'private';
+    const itemType = currentItem?.itemType || body?.itemType;
+    if (!name || name.length > 80 || !['folder', 'map'].includes(itemType)) return null;
+    if (parentId !== null && typeof parentId !== 'string') return null;
+    if (parentId) {
+      let parent = await db.getLibraryItem(parentId);
+      if (!parent || parent.roomId !== roomId || parent.itemType !== 'folder' || parent.id === currentItem?.id) return null;
+      let visited = new Set([parent.id]);
+      while (parent.parentId) {
+        parent = await db.getLibraryItem(parent.parentId);
+        if (!parent || visited.has(parent.id) || parent.id === currentItem?.id) return null;
+        visited.add(parent.id);
+      }
+    }
+    if (itemType === 'folder') return { itemType, name, parentId, visibility, data: {} };
+
+    const data = body?.data;
+    const width = Number(data?.width);
+    const height = Number(data?.height);
+    const backgroundUrl = parsePublicUrl(data?.backgroundUrl);
+    if (!Number.isInteger(width) || !Number.isInteger(height) || width < 1 || height < 1 || width > 100 || height > 100 || width * height > 10000 || backgroundUrl === undefined) return null;
+    const rawTokens = data?.tokens === undefined ? [] : data.tokens;
+    if (!Array.isArray(rawTokens) || rawTokens.length > 100) return null;
+    const tokens = [];
+    for (const token of rawTokens) {
+      const tokenName = typeof token?.name === 'string' ? token.name.trim() : '';
+      const imageUrl = parsePublicUrl(token?.imageUrl);
+      const x = Number(token?.x);
+      const y = Number(token?.y);
+      const assignedUserId = typeof token?.assignedUserId === 'string' ? token.assignedUserId : null;
+      if (!tokenName || tokenName.length > 60 || imageUrl === undefined || !Number.isInteger(x) || !Number.isInteger(y) || x < 0 || y < 0 || x >= width || y >= height) return null;
+      if (assignedUserId) {
+        const assignedMember = await db.getRoomMembership(roomId, assignedUserId);
+        if (!assignedMember || assignedMember.role !== 'player') return null;
+      }
+      tokens.push({ id: crypto.randomUUID(), name: tokenName, imageUrl, x, y, assignedUserId });
+    }
+    return { itemType, name, parentId, visibility, data: { width, height, backgroundUrl, tokens } };
+  }
+
+  function filterVisibleLibraryItems(items, role) {
+    if (role === 'gm') return items;
+    if (role !== 'player') return [];
+    const byId = new Map(items.map(item => [item.id, item]));
+    const isVisible = item => {
+      if (item.visibility !== 'room') return false;
+      if (!item.parentId) return true;
+      const parent = byId.get(item.parentId);
+      return Boolean(parent && parent.itemType === 'folder' && isVisible(parent));
+    };
+    return items.filter(isVisible);
   }
 
   async function getRoomState(roomId) {
@@ -279,31 +407,36 @@ async function createAppServer(options = {}) {
     const session = newSessionRecord(user.id);
     await db.createSession(session);
     response.setHeader('Set-Cookie', sessionCookie(session.token, secureCookies || request.secure));
-    response.json({ user: { id: user.id, username: user.username } });
+    response.json({ user: { id: user.id, username: user.username, email: user.email } });
   }
 
   app.post('/api/auth/register', rateLimit('register', 5, 60 * 60 * 1000), async (request, response, next) => {
     try {
       const username = typeof request.body?.username === 'string' ? request.body.username.trim() : '';
+      const email = typeof request.body?.email === 'string' ? request.body.email.trim().toLowerCase() : '';
       const password = typeof request.body?.password === 'string' ? request.body.password : '';
       if (!/^[A-Za-z0-9][A-Za-z0-9_.-]{2,31}$/.test(username)) {
         response.status(400).json({ error: 'Nome de usuário: 3–32 caracteres, letras, números, ponto, traço ou sublinhado.' });
+        return;
+      }
+      if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        response.status(400).json({ error: 'Informe um endereço de e-mail válido.' });
         return;
       }
       if (password.length < PASSWORD_MIN_LENGTH || password.length > 128) {
         response.status(400).json({ error: `A senha deve ter entre ${PASSWORD_MIN_LENGTH} e 128 caracteres.` });
         return;
       }
-      if (await db.findUserByUsername(username)) {
-        response.status(409).json({ error: 'Este nome de usuário já está em uso.' });
+      if (await db.findUserByUsername(username) || await db.findUserByEmail(email)) {
+        response.status(409).json({ error: 'Este e-mail ou nome de usuário já está cadastrado.' });
         return;
       }
-      const user = { id: crypto.randomUUID(), username, passwordHash: await hashPassword(password), createdAt: new Date().toISOString() };
+      const user = { id: crypto.randomUUID(), username, email, passwordHash: await hashPassword(password), createdAt: new Date().toISOString() };
       try {
         await db.insertUser(user);
       } catch (error) {
         if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === '23505') {
-          response.status(409).json({ error: 'Este nome de usuário já está em uso.' });
+          response.status(409).json({ error: 'Este e-mail ou nome de usuário já está cadastrado.' });
           return;
         }
         throw error;
@@ -316,9 +449,17 @@ async function createAppServer(options = {}) {
 
   app.post('/api/auth/login', rateLimit('login', 10, 15 * 60 * 1000), async (request, response, next) => {
     try {
-      const username = typeof request.body?.username === 'string' ? request.body.username.trim() : '';
+      const identifier = typeof request.body?.identifier === 'string'
+        ? request.body.identifier.trim()
+        : typeof request.body?.email === 'string'
+          ? request.body.email.trim()
+          : typeof request.body?.username === 'string'
+            ? request.body.username.trim()
+            : '';
       const password = typeof request.body?.password === 'string' ? request.body.password : '';
-      const user = await db.findUserByUsername(username);
+      const user = identifier.includes('@')
+        ? await db.findUserByEmail(identifier.toLowerCase())
+        : await db.findUserByUsername(identifier);
       if (password.length > 128) {
         response.status(401).json({ error: 'Nome de usuário ou senha inválidos.' });
         return;
@@ -349,7 +490,7 @@ async function createAppServer(options = {}) {
 
   app.get('/api/me', asyncHandler(async (request, response) => {
     const user = await getAuthenticatedUser(request);
-    response.json({ user: user ? { id: user.id, username: user.username } : null });
+    response.json({ user: user ? { id: user.id, username: user.username, email: user.email } : null });
   }));
 
   app.get('/api/rooms', requireAuth, asyncHandler(async (request, response) => {
@@ -365,19 +506,41 @@ async function createAppServer(options = {}) {
       return;
     }
     const createdAt = new Date().toISOString();
+    const accessType = request.body?.accessType === 'password' ? 'password' : 'public';
+    const roomPassword = typeof request.body?.password === 'string' ? request.body.password : '';
+    if (accessType === 'password' && (roomPassword.length < 6 || roomPassword.length > 128)) {
+      response.status(400).json({ error: 'A senha da mesa deve ter entre 6 e 128 caracteres.' });
+      return;
+    }
     const room = await db.createRoom({
       id: crypto.randomUUID(),
       name,
       gameSystem: gameSystem || 'Sistema próprio',
       description,
       visibility: 'public',
+      accessType,
+      passwordHash: accessType === 'password' ? await hashPassword(roomPassword) : null,
       ownerId: request.user.id,
       createdAt
     });
-    response.status(201).json({ room, membership: await db.getRoomMembership(room.id, request.user.id) });
+    const { passwordHash, ...publicRoom } = room;
+    response.status(201).json({ room: publicRoom, membership: await db.getRoomMembership(room.id, request.user.id) });
   }));
 
-  app.post('/api/rooms/:roomId/join', requireAuth, asyncHandler(async (request, response) => {
+  app.post('/api/rooms/:roomId/join', requireAuth, rateLimit('join-room', 10, 5 * 60 * 1000, request => request.user.id), asyncHandler(async (request, response) => {
+    const existingMembership = await db.getRoomMembership(request.params.roomId, request.user.id);
+    const room = await db.getRoom(request.params.roomId);
+    if (!room || room.isDemo) {
+      response.status(404).json({ error: 'Sala não encontrada.' });
+      return;
+    }
+    if (!existingMembership && room.accessType === 'password') {
+      const password = typeof request.body?.password === 'string' ? request.body.password : '';
+      if (!room.passwordHash || !await verifyPassword(password, room.passwordHash)) {
+        response.status(401).json({ error: 'Senha da mesa inválida.' });
+        return;
+      }
+    }
     const result = await db.joinRoom(request.params.roomId, request.user.id, new Date().toISOString());
     if (result.error) {
       const status = await db.getRoom(request.params.roomId) ? 403 : 404;
@@ -394,8 +557,9 @@ async function createAppServer(options = {}) {
       response.status(404).json({ error: 'Sala não encontrada.' });
       return;
     }
+    const { passwordHash, ...publicRoom } = room;
     response.json({
-      room,
+      room: publicRoom,
       membership,
       members: await db.listRoomMembers(room.id),
       bannedMembers: membership.role === 'gm' ? await db.listRoomBans(room.id) : []
@@ -403,7 +567,8 @@ async function createAppServer(options = {}) {
   }));
 
   app.get('/api/rooms/:roomId/campaigns', requireAuth, asyncHandler(async (request, response) => {
-    if (!await getAuthorizedMembership(request.params.roomId, request.user.id)) {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
+    if (!membership || membership.role === 'spectator') {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
@@ -552,7 +717,7 @@ async function createAppServer(options = {}) {
 
   app.get('/api/rooms/:roomId/characters', requireAuth, asyncHandler(async (request, response) => {
     const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
-    if (!membership) {
+    if (!membership || membership.role === 'spectator') {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
@@ -565,17 +730,27 @@ async function createAppServer(options = {}) {
       response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
       return;
     }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode criar e atribuir fichas.' });
+      return;
+    }
     const fields = await validCharacterFields(request.body, request.params.roomId);
     if (!fields) {
       response.status(400).json({ error: 'Ficha inválida: nome obrigatório, dados limitados a 12 KB e campanha da mesma sala.' });
+      return;
+    }
+    const ownerUserId = fields.ownerUserId || request.user.id;
+    const ownerMembership = await db.getRoomMembership(request.params.roomId, ownerUserId);
+    if (!ownerMembership || (ownerUserId !== request.user.id && ownerMembership.role !== 'player')) {
+      response.status(400).json({ error: 'A ficha precisa ser atribuída ao mestre ou a um jogador desta sala.' });
       return;
     }
     const now = new Date().toISOString();
     const character = await db.createCharacter({
       id: crypto.randomUUID(),
       roomId: request.params.roomId,
-      ownerUserId: request.user.id,
       ...fields,
+      ownerUserId,
       createdAt: now,
       updatedAt: now
     });
@@ -589,8 +764,8 @@ async function createAppServer(options = {}) {
       response.status(404).json({ error: 'Ficha não encontrada.' });
       return;
     }
-    if (character.ownerUserId !== request.user.id && membership.role !== 'gm') {
-      response.status(403).json({ error: 'Você só pode editar suas próprias fichas.' });
+    if (membership.role === 'spectator' || (character.ownerUserId !== request.user.id && membership.role !== 'gm')) {
+      response.status(403).json({ error: 'Você só pode editar fichas atribuídas a você.' });
       return;
     }
     const fields = await validCharacterFields(request.body, character.roomId);
@@ -598,7 +773,14 @@ async function createAppServer(options = {}) {
       response.status(400).json({ error: 'Ficha inválida: nome obrigatório, dados limitados a 12 KB e campanha da mesma sala.' });
       return;
     }
-    await db.updateCharacter(character.id, fields.name, fields.data, fields.campaignId, new Date().toISOString());
+    const ownerUserId = membership.role === 'gm' ? fields.ownerUserId || character.ownerUserId : character.ownerUserId;
+    const ownerMembership = await db.getRoomMembership(character.roomId, ownerUserId);
+    if (!ownerMembership || (ownerUserId !== membership.userId && ownerMembership.role !== 'player')) {
+      response.status(400).json({ error: 'A ficha precisa ser atribuída ao mestre ou a um jogador desta sala.' });
+      return;
+    }
+    const visibility = membership.role === 'gm' ? fields.visibility : character.visibility;
+    await db.updateCharacter(character.id, fields.name, fields.data, fields.campaignId, visibility, ownerUserId, new Date().toISOString());
     response.json({ character: await db.getCharacter(character.id) });
   }));
 
@@ -609,12 +791,97 @@ async function createAppServer(options = {}) {
       response.status(404).json({ error: 'Ficha não encontrada.' });
       return;
     }
-    if (character.ownerUserId !== request.user.id && membership.role !== 'gm') {
-      response.status(403).json({ error: 'Você só pode excluir suas próprias fichas.' });
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode excluir fichas.' });
       return;
     }
     await db.deleteCharacter(character.id);
     response.status(204).end();
+  }));
+
+  app.get('/api/rooms/:roomId/library', requireAuth, asyncHandler(async (request, response) => {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
+    if (!membership) {
+      response.status(403).json({ error: 'Você não tem acesso a esta sala.' });
+      return;
+    }
+    const items = await db.listLibraryItems(request.params.roomId);
+    response.json({ items: filterVisibleLibraryItems(items, membership.role) });
+  }));
+
+  app.post('/api/rooms/:roomId/library', requireAuth, asyncHandler(async (request, response) => {
+    const membership = await getAuthorizedMembership(request.params.roomId, request.user.id);
+    if (!membership || membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode criar itens na biblioteca.' });
+      return;
+    }
+    const fields = await validLibraryFields(request.body, request.params.roomId);
+    if (!fields) {
+      response.status(400).json({ error: 'Item inválido. Confira nome, pasta, URL de imagem e dimensões do mapa (1–100 por eixo).' });
+      return;
+    }
+    const now = new Date().toISOString();
+    const item = await db.createLibraryItem({
+      id: crypto.randomUUID(),
+      roomId: request.params.roomId,
+      ownerUserId: request.user.id,
+      ...fields,
+      createdAt: now,
+      updatedAt: now
+    });
+    response.status(201).json({ item });
+  }));
+
+  app.patch('/api/library/:itemId', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Item não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode editar a biblioteca.' });
+      return;
+    }
+    const fields = await validLibraryFields(request.body, item.roomId, item);
+    if (!fields) {
+      response.status(400).json({ error: 'Item inválido. Confira nome, pasta, URL de imagem e dimensões do mapa (1–100 por eixo).' });
+      return;
+    }
+    await db.updateLibraryItem(item.id, fields, new Date().toISOString());
+    response.json({ item: await db.getLibraryItem(item.id) });
+  }));
+
+  app.delete('/api/library/:itemId', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Item não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode excluir itens da biblioteca.' });
+      return;
+    }
+    await db.deleteLibraryItem(item.id);
+    response.status(204).end();
+  }));
+
+  app.post('/api/rooms/:roomId/members/:targetUserId/role', requireAuth, asyncHandler(async (request, response) => {
+    const { roomId, targetUserId } = request.params;
+    const actorMembership = await getAuthorizedMembership(roomId, request.user.id);
+    const targetMembership = await db.getRoomMembership(roomId, targetUserId);
+    const role = request.body?.role;
+    if (!actorMembership || actorMembership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode alterar os papéis da sala.' });
+      return;
+    }
+    if (!targetMembership || targetUserId === request.user.id || !['player', 'spectator'].includes(role)) {
+      response.status(400).json({ error: 'Membro ou papel inválido.' });
+      return;
+    }
+    await db.setRoomMemberRole(roomId, targetUserId, role);
+    response.json({ member: await db.getRoomMembership(roomId, targetUserId) });
   }));
 
   app.post('/api/rooms/:roomId/members/:targetUserId/moderation', requireAuth, asyncHandler(async (request, response) => {
@@ -781,13 +1048,34 @@ async function createAppServer(options = {}) {
             ws.close(4003, 'Acesso à sala removido');
             return;
           }
+          let actorCharacter = null;
+          let incomingMessage;
+          try {
+            incomingMessage = JSON.parse(rawMessage.toString());
+          } catch {
+            // processMessage returns the protocol error for malformed JSON.
+          }
+          if (incomingMessage?.type === 'ROLL_CHARACTER_CHECK') {
+            const characterId = incomingMessage.payload?.characterId;
+            const character = typeof characterId === 'string' ? await db.getCharacter(characterId) : null;
+            if (currentMembership.role === 'spectator') {
+              ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Espectadores podem conversar, mas não rolar dados.' } }));
+              return;
+            }
+            if (!character || character.roomId !== room.id || (character.ownerUserId !== user.id && currentMembership.role !== 'gm')) {
+              ws.send(JSON.stringify({ type: 'ERROR', payload: { message: 'Ficha não encontrada ou sem permissão para usá-la.' } }));
+              return;
+            }
+            actorCharacter = character;
+          }
           const state = await getRoomState(room.id);
           const previousState = structuredClone(state);
           const result = processMessage(rawMessage, state, new Date(), crypto.randomInt, {
             id: user.id,
             username: user.username,
             role: currentMembership.role,
-            mutedUntil: currentMembership.mutedUntil
+            mutedUntil: currentMembership.mutedUntil,
+            character: actorCharacter
           });
           if (result.type !== 'STATE_UPDATE') {
             ws.send(JSON.stringify(result));

@@ -1,16 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Compass, Dices, Home, Maximize2, MessageSquare, Send, Shield, Users } from 'lucide-react';
 
-interface Token {
-  id: string;
-  name: string;
-  x: number;
-  y: number;
-  hp: number;
-  maxHp: number;
-  color: string;
-}
-
 interface ChatMessage {
   id: string;
   user: string;
@@ -30,6 +20,7 @@ interface DiceRoll {
 interface AuthUser {
   id: string;
   username: string;
+  email?: string;
 }
 
 interface Room {
@@ -37,15 +28,16 @@ interface Room {
   name: string;
   description: string;
   gameSystem: string;
-  isDemo: boolean;
-  role: 'gm' | 'player' | null;
+  role: 'gm' | 'player' | 'spectator' | null;
+  accessType: 'public' | 'password' | 'private';
+  requiresPassword: boolean;
   memberCount: number;
 }
 
 interface RoomMember {
   id: string;
   username: string;
-  role: 'gm' | 'player';
+  role: 'gm' | 'player' | 'spectator';
   mutedUntil: string | null;
 }
 
@@ -69,6 +61,16 @@ interface Character {
   data: Record<string, unknown>;
 }
 
+interface LibraryItem {
+  id: string;
+  roomId: string;
+  parentId: string | null;
+  itemType: 'folder' | 'map';
+  name: string;
+  visibility: 'private' | 'room';
+  data: { width?: number; height?: number; backgroundUrl?: string | null };
+}
+
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
@@ -78,13 +80,34 @@ const API_BASE = import.meta.env.VITE_API_URL || (import.meta.env.DEV
   ? `${window.location.protocol}//${window.location.hostname}:4000`
   : window.location.origin);
 
+const DEFAULT_DND5E_CHARACTER = JSON.stringify({
+  system: 'dnd5e',
+  level: 1,
+  proficiencyBonus: 2,
+  abilities: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+  proficientSaves: [],
+  proficientSkills: [],
+  hitPoints: { current: 10, maximum: 10 },
+  notes: ''
+}, null, 2);
+const DND5E_SKILLS = [
+  'acrobatics', 'animalHandling', 'arcana', 'athletics', 'deception', 'history',
+  'insight', 'intimidation', 'investigation', 'medicine', 'nature', 'perception',
+  'performance', 'persuasion', 'religion', 'sleightOfHand', 'stealth', 'survival'
+];
+
+function getDnd5eAbilities(data: Record<string, unknown>): Array<[string, number]> {
+  if (data.system !== 'dnd5e' || typeof data.abilities !== 'object' || data.abilities === null) return [];
+  return Object.entries(data.abilities).filter((entry): entry is [string, number] => typeof entry[1] === 'number');
+}
+
 export function App() {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [activePage, setActivePage] = useState<'lobby' | 'room' | 'campaigns' | 'characters'>('lobby');
-  const [mobilePanel, setMobilePanel] = useState<'map' | 'library' | 'chat' | 'dice' | 'members'>('map');
+  const [mobilePanel, setMobilePanel] = useState<'map' | 'library' | 'chat' | 'dice' | 'members'>('chat');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [roomSearch, setRoomSearch] = useState('');
@@ -96,6 +119,15 @@ export function App() {
   const [selectedCampaignId, setSelectedCampaignId] = useState('');
   const [campaignNotes, setCampaignNotes] = useState<CampaignNote[]>([]);
   const [characters, setCharacters] = useState<Character[]>([]);
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([]);
+  const [selectedLibraryItemId, setSelectedLibraryItemId] = useState<string | null>(null);
+  const [libraryName, setLibraryName] = useState('');
+  const [libraryItemType, setLibraryItemType] = useState<'folder' | 'map'>('folder');
+  const [libraryVisibility, setLibraryVisibility] = useState<'private' | 'room'>('room');
+  const [libraryWidth, setLibraryWidth] = useState(12);
+  const [libraryHeight, setLibraryHeight] = useState(12);
+  const [libraryBackgroundUrl, setLibraryBackgroundUrl] = useState('');
+  const [libraryParentId, setLibraryParentId] = useState('');
   const [campaignName, setCampaignName] = useState('');
   const [campaignDescription, setCampaignDescription] = useState('');
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -103,28 +135,34 @@ export function App() {
   const [noteContent, setNoteContent] = useState('');
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [characterName, setCharacterName] = useState('');
-  const [characterDataText, setCharacterDataText] = useState('{}');
+  const [characterDataText, setCharacterDataText] = useState(DEFAULT_DND5E_CHARACTER);
   const [characterCampaignId, setCharacterCampaignId] = useState('');
+  const [characterOwnerId, setCharacterOwnerId] = useState('');
   const [editingCharacterId, setEditingCharacterId] = useState<string | null>(null);
   const [authLoaded, setAuthLoaded] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
   const [authUsername, setAuthUsername] = useState('');
+  const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
   const [newRoomName, setNewRoomName] = useState('');
   const [newRoomSystem, setNewRoomSystem] = useState('Sistema próprio');
+  const [newRoomAccessType, setNewRoomAccessType] = useState<'public' | 'password'>('public');
+  const [newRoomPassword, setNewRoomPassword] = useState('');
+  const [joiningRoom, setJoiningRoom] = useState<Room | null>(null);
+  const [joinPassword, setJoinPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [selectedTokenId, setSelectedTokenId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [diceRolls, setDiceRolls] = useState<DiceRoll[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [diceExpr, setDiceExpr] = useState('1d20');
   const [activeTab, setActiveTab] = useState<'chat' | 'dice' | 'members'>('chat');
-  const [gridSize] = useState(12);
   const activeRoom = rooms.find(room => room.id === activeRoomId) || null;
   const isRoomMember = Boolean(activeRoom?.role);
+  const selectedLibraryItem = libraryItems.find(item => item.id === selectedLibraryItemId && item.itemType === 'map') || null;
+  const gridWidth = selectedLibraryItem?.data.width || 12;
+  const gridHeight = selectedLibraryItem?.data.height || 12;
 
   useEffect(() => {
     const updateOnlineState = () => setIsOnline(navigator.onLine);
@@ -189,6 +227,65 @@ export function App() {
     setRooms(result.rooms || []);
   }
 
+  async function refreshLibrary() {
+    if (!activeRoomId) return;
+    const response = await fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/library`, { credentials: 'include' });
+    const result = await response.json() as { items?: LibraryItem[]; error?: string };
+    if (!response.ok) throw new Error(result.error || 'Não foi possível carregar a biblioteca.');
+    setLibraryItems(result.items || []);
+    setSelectedLibraryItemId(current => (result.items || []).some(item => item.id === current && item.itemType === 'map') ? current : null);
+  }
+
+  const handleSaveLibraryItem = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!activeRoomId) return;
+    setErrorMessage('');
+    const data = libraryItemType === 'map'
+      ? { width: libraryWidth, height: libraryHeight, backgroundUrl: libraryBackgroundUrl || null, tokens: [] }
+      : {};
+    try {
+      const response = await fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/library`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          itemType: libraryItemType,
+          name: libraryName,
+          parentId: libraryParentId || null,
+          visibility: libraryVisibility,
+          data
+        })
+      });
+      const result = await response.json() as { item?: LibraryItem; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error || 'Não foi possível criar o item.');
+      await refreshLibrary();
+      setSelectedLibraryItemId(result.item.itemType === 'map' ? result.item.id : null);
+      setLibraryName('');
+      setLibraryBackgroundUrl('');
+      setLibraryParentId('');
+      setMobilePanel('chat');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível salvar o item da biblioteca.');
+    }
+  };
+
+  const handleDeleteLibraryItem = async (item: LibraryItem) => {
+    if (!window.confirm(`Excluir ${item.name}${item.itemType === 'folder' ? ' e os itens dentro dela' : ''}?`)) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/library/${encodeURIComponent(item.id)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const result = await response.json() as { error?: string };
+        throw new Error(result.error || 'Não foi possível excluir o item.');
+      }
+      await refreshLibrary();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível excluir o item.');
+    }
+  };
+
   const handleAuthSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsSubmitting(true);
@@ -199,7 +296,9 @@ export function App() {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ username: authUsername, password: authPassword })
+        body: JSON.stringify(authMode === 'register'
+          ? { username: authUsername, email: authEmail, password: authPassword }
+          : { identifier: authUsername, password: authPassword })
       });
       const result = await response.json() as { user?: AuthUser; error?: string };
       if (!response.ok || !result.user) throw new Error(result.error || 'Não foi possível autenticar.');
@@ -320,18 +419,36 @@ export function App() {
         method: editingCharacterId ? 'PATCH' : 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: characterName, campaignId: characterCampaignId || null, data: parsedData })
+        body: JSON.stringify({
+          name: characterName,
+          campaignId: characterCampaignId || null,
+          data: parsedData,
+          ...(!editingCharacterId && activeRoom?.role === 'gm' ? { ownerUserId: characterOwnerId || user?.id } : {})
+        })
       });
       const result = await response.json() as { character?: Character; error?: string };
       if (!response.ok || !result.character) throw new Error(result.error || 'Não foi possível salvar a ficha.');
       await refreshCampaignsAndCharacters();
       setCharacterName('');
-      setCharacterDataText('{}');
+      setCharacterDataText(DEFAULT_DND5E_CHARACTER);
       setCharacterCampaignId('');
+      setCharacterOwnerId('');
       setEditingCharacterId(null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Dados JSON inválidos.');
     }
+  };
+
+  const handleCharacterCheck = (characterId: string, kind: 'ability' | 'savingThrow' | 'skill', key: string) => {
+    if (activeRoom?.role === 'spectator') {
+      setErrorMessage('Espectadores podem conversar, mas não rolar testes.');
+      return;
+    }
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+      setErrorMessage('Sala desconectada. O teste não foi enviado ao servidor.');
+      return;
+    }
+    ws.send(JSON.stringify({ type: 'ROLL_CHARACTER_CHECK', payload: { characterId, kind, key } }));
   };
 
   const handleDeleteCharacter = async (characterId: string) => {
@@ -374,13 +491,35 @@ export function App() {
     }
   };
 
+  const handleSetMemberRole = async (member: RoomMember, role: 'player' | 'spectator') => {
+    if (!activeRoomId) return;
+    try {
+      const response = await fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/members/${encodeURIComponent(member.id)}/role`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ role })
+      });
+      const result = await response.json() as { error?: string };
+      if (!response.ok) throw new Error(result.error || 'Não foi possível alterar o papel.');
+      const roomResponse = await fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}`, { credentials: 'include' });
+      const roomResult = await roomResponse.json() as { members?: RoomMember[]; error?: string };
+      if (!roomResponse.ok) throw new Error(roomResult.error || 'Papel alterado, mas não foi possível atualizar a lista.');
+      setRoomMembers(roomResult.members || []);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível alterar o papel.');
+    }
+  };
+
   const handleJoinRoom = async (room: Room) => {
     setIsSubmitting(true);
     setErrorMessage('');
     try {
       const response = await fetch(`${API_BASE}/api/rooms/${encodeURIComponent(room.id)}/join`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ password: joinPassword })
       });
       const result = await response.json() as { error?: string };
       if (!response.ok) throw new Error(result.error || 'Não foi possível entrar na sala.');
@@ -388,6 +527,8 @@ export function App() {
       setActiveRoomId(room.id);
       setActivePage('room');
       setMobilePanel('map');
+      setJoiningRoom(null);
+      setJoinPassword('');
       setSuccessMessage('');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Não foi possível entrar na sala.');
@@ -405,7 +546,12 @@ export function App() {
         method: 'POST',
         credentials: 'include',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ name: newRoomName, gameSystem: newRoomSystem })
+        body: JSON.stringify({
+          name: newRoomName,
+          gameSystem: newRoomSystem,
+          accessType: newRoomAccessType,
+          password: newRoomAccessType === 'password' ? newRoomPassword : undefined
+        })
       });
       const result = await response.json() as { room?: Room; error?: string };
       if (!response.ok || !result.room) throw new Error(result.error || 'Não foi possível criar a sala.');
@@ -413,6 +559,8 @@ export function App() {
       setActiveRoomId(result.room.id);
       setActivePage('room');
       setNewRoomName('');
+      setNewRoomPassword('');
+      setMobilePanel('chat');
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Não foi possível criar a sala.');
     } finally {
@@ -441,8 +589,6 @@ export function App() {
     if (!user || !activeRoomId || !isRoomMember) {
       setWs(null);
       setConnected(false);
-      setTokens([]);
-      setSelectedTokenId(null);
       setMessages([]);
       setDiceRolls([]);
       return;
@@ -471,10 +617,9 @@ export function App() {
         try {
           const data = JSON.parse(event.data) as {
             type?: string;
-            payload?: { tokens?: Token[]; messages?: ChatMessage[]; diceRolls?: DiceRoll[]; message?: string };
+            payload?: { messages?: ChatMessage[]; diceRolls?: DiceRoll[]; message?: string };
           };
           if (data.type === 'INIT_STATE' || data.type === 'STATE_UPDATE') {
-            if (data.payload?.tokens) setTokens(data.payload.tokens);
             if (data.payload?.messages) setMessages(data.payload.messages);
             if (data.payload?.diceRolls) setDiceRolls(data.payload.diceRolls);
           } else if (data.type === 'ERROR') {
@@ -524,6 +669,13 @@ export function App() {
       setSelectedCampaignId('');
       return () => { active = false; };
     }
+    if (activeRoom?.role === 'spectator') {
+      setCampaigns([]);
+      setCampaignNotes([]);
+      setCharacters([]);
+      setSelectedCampaignId('');
+      return () => { active = false; };
+    }
     Promise.all([
       fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/campaigns`, { credentials: 'include' }),
       fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/characters`, { credentials: 'include' })
@@ -541,6 +693,30 @@ export function App() {
     }).catch(error => {
       if (active) setErrorMessage(error instanceof Error ? error.message : 'Não foi possível carregar campanhas e fichas.');
     });
+    return () => { active = false; };
+  }, [user?.id, activeRoomId, isRoomMember, activeRoom?.role]);
+
+  useEffect(() => {
+    let active = true;
+    if (!user || !activeRoomId || !isRoomMember) {
+      setLibraryItems([]);
+      setSelectedLibraryItemId(null);
+      return () => { active = false; };
+    }
+    fetch(`${API_BASE}/api/rooms/${encodeURIComponent(activeRoomId)}/library`, { credentials: 'include' })
+      .then(async response => {
+        const result = await response.json() as { items?: LibraryItem[]; error?: string };
+        if (!response.ok) throw new Error(result.error || 'Não foi possível carregar a biblioteca.');
+        return result.items || [];
+      })
+      .then(items => {
+        if (!active) return;
+        setLibraryItems(items);
+        setSelectedLibraryItemId(current => items.some(item => item.id === current && item.itemType === 'map') ? current : null);
+      })
+      .catch(error => {
+        if (active) setErrorMessage(error instanceof Error ? error.message : 'Não foi possível carregar a biblioteca.');
+      });
     return () => { active = false; };
   }, [user?.id, activeRoomId, isRoomMember]);
 
@@ -605,6 +781,10 @@ export function App() {
   };
 
   const handleRollDice = (expr: string) => {
+    if (activeRoom?.role === 'spectator') {
+      setErrorMessage('Espectadores podem conversar, mas não rolar dados.');
+      return;
+    }
     const match = /^([1-9]\d?)d([1-9]\d{0,3})([+-]\d{1,3})?$/.exec(expr.trim());
     const count = match ? Number(match[1]) : 0;
     const sides = match ? Number(match[2]) : 0;
@@ -620,20 +800,6 @@ export function App() {
     }
     ws.send(JSON.stringify({ type: 'ROLL_DICE', payload: { expression: expr.trim() } }));
     setErrorMessage('');
-  };
-
-  const moveToken = (id: string, dx: number, dy: number) => {
-    const token = tokens.find(t => t.id === id);
-    if (!token) return;
-
-    const newX = Math.max(0, Math.min(gridSize - 1, token.x + dx));
-    const newY = Math.max(0, Math.min(gridSize - 1, token.y + dy));
-
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      setErrorMessage('Sala desconectada. O movimento não foi enviado.');
-      return;
-    }
-    ws.send(JSON.stringify({ type: 'MOVE_TOKEN', payload: { id, x: newX, y: newY } }));
   };
 
   const toggleFullscreen = async () => {
@@ -682,17 +848,17 @@ export function App() {
             <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('room')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'room' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'room' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Mesa
             </button>
-            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('campaigns')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'campaigns' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'campaigns' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
+            <button type="button" onClick={() => activeRoomId && isRoomMember && activeRoom?.role !== 'spectator' && setActivePage('campaigns')} disabled={!activeRoomId || !isRoomMember || activeRoom?.role === 'spectator'} aria-current={activePage === 'campaigns' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'campaigns' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Campanhas
             </button>
-            <button type="button" onClick={() => activeRoomId && isRoomMember && setActivePage('characters')} disabled={!activeRoomId || !isRoomMember} aria-current={activePage === 'characters' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'characters' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
+            <button type="button" onClick={() => activeRoomId && isRoomMember && activeRoom?.role !== 'spectator' && setActivePage('characters')} disabled={!activeRoomId || !isRoomMember || activeRoom?.role === 'spectator'} aria-current={activePage === 'characters' ? 'page' : undefined} className={`rounded border px-3 py-2 text-xs transition disabled:cursor-not-allowed disabled:opacity-40 ${activePage === 'characters' ? 'border-[#A88956] bg-[#101113]/80 text-[#E3D8C6]' : 'border-transparent text-[#D0CCC4]/70 hover:border-[#A88956]/40'}`}>
               Fichas
             </button>
           </nav>
           <div className="flex items-center gap-2">
             <span className="flex items-center gap-2 rounded border border-[#A88956]/40 bg-[#101113]/80 px-3 py-2 text-xs" role="status">
               <span className={`h-2.5 w-2.5 rounded-full ${connected ? 'bg-emerald-500' : 'bg-amber-500'}`} aria-hidden="true"></span>
-              {!isOnline ? 'Sem rede · alterações não sincronizadas' : connected ? `${activeRoom?.isDemo ? 'Demonstração pública · ' : ''}${activeRoom?.name || 'Sala'} · sincronizada` : user && activeRoomId ? 'Backend desconectado' : user ? 'Conecte-se a uma sala' : 'Entre para jogar'}
+              {!isOnline ? 'Sem rede · alterações não sincronizadas' : connected ? `${activeRoom?.name || 'Sala'} · backend conectado` : user && activeRoomId ? 'Backend desconectado' : user ? 'Conecte-se a uma sala' : 'Entre para jogar'}
             </span>
             {user && <><span className="max-w-28 truncate text-xs text-[#E3D8C6]">{user.username}</span><button type="button" onClick={handleLogout} className="min-h-9 rounded border border-[#A88956]/40 px-2 text-xs text-[#D0CCC4] hover:border-[#A88956]">Sair</button></>}
             {installPrompt && <button type="button" onClick={handleInstall} className="min-h-9 rounded border border-[#A88956]/50 px-2 text-xs text-[#E3D8C6]">Instalar app</button>}
@@ -719,11 +885,14 @@ export function App() {
                 <section className="rounded-lg border border-[#A88956]/30 bg-[#202124] p-5">
                   <p className="text-xs uppercase tracking-widest text-[#A88956]">Conta do servidor</p>
                   <h3 className="mt-2 text-xl font-semibold text-[#E3D8C6]">{authMode === 'login' ? 'Entrar na mesa' : 'Criar conta'}</h3>
-                  <p className="mt-2 text-sm text-[#D0CCC4]/70">A senha é armazenada como hash no banco do servidor. Não use uma senha de outro serviço.</p>
+                  <p className="mt-2 text-sm text-[#D0CCC4]/70">A senha é armazenada como hash no servidor. O cadastro não envia e-mail de verificação.</p>
                   <form onSubmit={handleAuthSubmit} className="mt-5 space-y-4">
-                    <label className="block text-sm text-[#E3D8C6]">Nome de usuário
-                      <input required minLength={3} maxLength={32} autoComplete="username" value={authUsername} onChange={event => setAuthUsername(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
+                    <label className="block text-sm text-[#E3D8C6]">{authMode === 'login' ? 'E-mail ou nome de usuário' : 'Nome de usuário'}
+                      <input required minLength={authMode === 'register' ? 3 : 1} maxLength={254} autoComplete={authMode === 'register' ? 'username' : 'username'} value={authUsername} onChange={event => setAuthUsername(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
                     </label>
+                    {authMode === 'register' && <label className="block text-sm text-[#E3D8C6]">E-mail
+                      <input required type="email" maxLength={254} autoComplete="email" value={authEmail} onChange={event => setAuthEmail(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
+                    </label>}
                     <label className="block text-sm text-[#E3D8C6]">Senha
                       <input required minLength={authMode === 'register' ? 12 : 1} maxLength={128} type="password" autoComplete={authMode === 'register' ? 'new-password' : 'current-password'} value={authPassword} onChange={event => setAuthPassword(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm" />
                     </label>
@@ -734,8 +903,8 @@ export function App() {
                   </button>
                 </section>
                 <aside className="rounded-lg border border-[#A88956]/20 bg-[#101113] p-5 text-sm text-[#D0CCC4]/70">
-                  <h3 className="font-semibold text-[#E3D8C6]">Demonstração pública</h3>
-                  <p className="mt-2">A sala inicial é compartilhada com qualquer usuário que entrar. Não coloque dados sensíveis nela.</p>
+                  <h3 className="font-semibold text-[#E3D8C6]">Salas persistidas</h3>
+                  <p className="mt-2">O lobby lista apenas salas armazenadas no servidor. A presença online em tempo real ainda não é anunciada.</p>
                   {errorMessage && <p className="mt-4 text-amber-200">Estado do servidor: {errorMessage}</p>}
                 </aside>
               </div>
@@ -815,7 +984,7 @@ export function App() {
                 <div className="mx-auto max-w-5xl">
                   <p className="mb-1 text-xs uppercase tracking-[0.25em] text-[#A88956]/80">{activeRoom?.name || 'Sala'}</p>
                   <h2 className="mb-6 border-b border-[#A88956]/30 pb-4 text-2xl font-bold text-[#E3D8C6]">Fichas de personagem</h2>
-                  <form onSubmit={handleSaveCharacter} className="mb-6 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 lg:grid-cols-2">
+                  {(activeRoom?.role === 'gm' || editingCharacterId) && <form onSubmit={handleSaveCharacter} className="mb-6 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 lg:grid-cols-2">
                     <h3 className="font-semibold text-[#E3D8C6] lg:col-span-2">{editingCharacterId ? 'Editar ficha' : 'Criar ficha'}</h3>
                     <label className="text-sm text-[#E3D8C6]">Nome
                       <input required maxLength={60} value={characterName} onChange={event => setCharacterName(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
@@ -826,18 +995,36 @@ export function App() {
                         {campaigns.map(campaign => <option key={campaign.id} value={campaign.id}>{campaign.name}</option>)}
                       </select>
                     </label>
+                    {!editingCharacterId && activeRoom?.role === 'gm' && <label className="text-sm text-[#E3D8C6]">Atribuir ficha
+                      <select value={characterOwnerId} onChange={event => setCharacterOwnerId(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3">
+                        <option value="">Mestre (minha ficha)</option>
+                        {roomMembers.filter(member => member.role === 'player').map(member => <option key={member.id} value={member.id}>{member.username}</option>)}
+                      </select>
+                    </label>}
                     <label className="text-sm text-[#E3D8C6] lg:col-span-2">Dados JSON da ficha
                       <textarea required value={characterDataText} onChange={event => setCharacterDataText(event.target.value)} spellCheck={false} className="mt-1 min-h-36 w-full rounded border border-[#A88956]/40 bg-[#101113] p-3 font-mono text-xs" />
                     </label>
                     <div className="flex gap-2 lg:col-span-2">
                       <button type="submit" className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 font-semibold text-[#E3D8C6]">{editingCharacterId ? 'Salvar ficha' : 'Criar ficha'}</button>
-                      {editingCharacterId && <button type="button" onClick={() => { setEditingCharacterId(null); setCharacterName(''); setCharacterDataText('{}'); setCharacterCampaignId(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-4 text-sm">Cancelar</button>}
+                      {editingCharacterId && <button type="button" onClick={() => { setEditingCharacterId(null); setCharacterName(''); setCharacterDataText(DEFAULT_DND5E_CHARACTER); setCharacterCampaignId(''); setCharacterOwnerId(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-4 text-sm">Cancelar</button>}
                     </div>
-                  </form>
+                  </form>}
                   <div className="grid gap-4 md:grid-cols-2">
                     {characters.map(character => <article key={character.id} className="rounded-lg border border-[#A88956]/25 bg-[#202124] p-4">
                       <h3 className="font-semibold text-[#E3D8C6]">{character.name}</h3>
                       <p className="mt-1 text-xs text-[#D0CCC4]/60">{campaigns.find(campaign => campaign.id === character.campaignId)?.name || 'Sem campanha'} · {character.ownerUserId === user?.id ? 'Sua ficha' : 'Ficha de jogador'}</p>
+                      {getDnd5eAbilities(character.data).length > 0 && <div className="mt-3">
+                        <p className="mb-2 text-[10px] uppercase tracking-wider text-[#A88956]/80">Testes D&D 5E · resultado calculado no servidor</p>
+                        <div className="grid grid-cols-3 gap-1">
+                          {getDnd5eAbilities(character.data).map(([ability, score]) => <div key={ability} className="flex items-center gap-1">
+                            <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => handleCharacterCheck(character.id, 'ability', ability)} className="min-h-9 flex-1 rounded border border-[#A88956]/30 bg-[#101113] px-2 text-[10px] uppercase text-[#E3D8C6] disabled:opacity-40">{ability} {score}</button>
+                            <button type="button" disabled={activeRoom?.role === 'spectator'} aria-label={`Rolar teste de resistência ${ability}`} onClick={() => handleCharacterCheck(character.id, 'savingThrow', ability)} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-[10px] text-[#A88956] disabled:opacity-40">TR</button>
+                          </div>)}
+                        </div>
+                        <div className="mt-2 grid grid-cols-2 gap-1">
+                          {DND5E_SKILLS.map(skill => <button key={skill} type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => handleCharacterCheck(character.id, 'skill', skill)} className="min-h-8 rounded border border-[#A88956]/20 bg-[#101113]/70 px-2 text-left text-[10px] capitalize text-[#D0CCC4] disabled:opacity-40">{skill.replace(/[A-Z]/g, letter => ` ${letter.toLowerCase()}`)}</button>)}
+                        </div>
+                      </div>}
                       <pre className="mt-3 max-h-48 overflow-auto rounded bg-[#101113] p-3 text-xs text-[#D0CCC4]">{JSON.stringify(character.data, null, 2)}</pre>
                       {(character.ownerUserId === user?.id || activeRoom?.role === 'gm') && <div className="mt-3 flex gap-2">
                         <button type="button" onClick={() => { setEditingCharacterId(character.id); setCharacterName(character.name); setCharacterDataText(JSON.stringify(character.data, null, 2)); setCharacterCampaignId(character.campaignId || ''); }} className="min-h-9 rounded border border-[#A88956]/30 px-3 text-xs">Editar</button>
@@ -850,16 +1037,25 @@ export function App() {
               </section>
             ) : (
               <>
-                <form onSubmit={handleCreateRoom} className="mb-8 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 md:grid-cols-[1fr_1fr_auto]">
+                <form onSubmit={handleCreateRoom} className="mb-8 grid gap-3 rounded-lg border border-[#A88956]/30 bg-[#202124] p-4 md:grid-cols-2">
                   <label className="text-sm text-[#E3D8C6]">Nome da sala
                     <input required maxLength={80} value={newRoomName} onChange={event => setNewRoomName(event.target.value)} placeholder="Ex.: Crônicas do Norte" className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                   </label>
                   <label className="text-sm text-[#E3D8C6]">Sistema
                     <input maxLength={60} value={newRoomSystem} onChange={event => setNewRoomSystem(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
                   </label>
-                  <button disabled={isSubmitting} type="submit" className="mt-5 min-h-11 rounded border border-[#A88956]/60 bg-[#542126] px-5 font-semibold text-[#E3D8C6] disabled:opacity-50">Criar sala pública</button>
+                  <label className="text-sm text-[#E3D8C6]">Acesso da sala
+                    <select value={newRoomAccessType} onChange={event => setNewRoomAccessType(event.target.value as 'public' | 'password')} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3">
+                      <option value="public">Pública</option>
+                      <option value="password">Protegida por senha</option>
+                    </select>
+                  </label>
+                  {newRoomAccessType === 'password' && <label className="text-sm text-[#E3D8C6]">Senha da sala
+                    <input required minLength={6} maxLength={128} type="password" autoComplete="new-password" value={newRoomPassword} onChange={event => setNewRoomPassword(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
+                  </label>}
+                  <button disabled={isSubmitting} type="submit" className="min-h-11 self-end rounded border border-[#A88956]/60 bg-[#542126] px-5 font-semibold text-[#E3D8C6] disabled:opacity-50">Criar sala</button>
                 </form>
-                <label htmlFor="room-search" className="mb-2 block text-sm text-[#E3D8C6]">Buscar nas salas públicas</label>
+                <label htmlFor="room-search" className="mb-2 block text-sm text-[#E3D8C6]">Buscar nas salas disponíveis</label>
                 <input id="room-search" type="search" value={roomSearch} onChange={event => setRoomSearch(event.target.value)} placeholder="Nome, sistema ou descrição" className="mb-6 w-full max-w-lg rounded border border-[#A88956]/40 bg-[#191A1D] px-3 py-3 text-sm text-[#D0CCC4] placeholder:text-[#D0CCC4]/40 focus:border-[#A88956] focus:outline-none focus:ring-2 focus:ring-[#A88956]/30" />
                 <div className="space-y-2">
                   {visibleRooms.map(room => (
@@ -870,22 +1066,31 @@ export function App() {
                             <Dices className="h-5 w-5 text-[#A88956]" />
                           </div>
                           <div className="min-w-0">
-                            {room.isDemo && <p className="mb-1 text-[10px] uppercase tracking-widest text-amber-300">Demonstração pública</p>}
                             <h3 className="text-lg font-semibold text-[#E3D8C6]">{room.name}</h3>
                             <p className="mt-1 text-xs text-[#A88956]">{room.gameSystem}</p>
                             {room.description && <p className="mt-1 text-sm text-[#D0CCC4]/70">{room.description}</p>}
                           </div>
                         </div>
-                        <span className="shrink-0 rounded border border-[#A88956]/20 px-2 py-1 text-xs text-[#D0CCC4]/70">{room.role || 'Pública'}</span>
+                        <span className="shrink-0 rounded border border-[#A88956]/20 px-2 py-1 text-xs text-[#D0CCC4]/70">{room.role ? room.role === 'gm' ? 'Mestre' : room.role === 'player' ? 'Jogador' : 'Espectador' : room.requiresPassword ? 'Requer senha' : 'Pública'}</span>
                       </div>
                       <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#A88956]/15 pt-2">
                         <span className="text-xs text-[#D0CCC4]/60">{room.memberCount} membro(s)</span>
-                        <button disabled={isSubmitting} type="button" onClick={() => room.role ? (setActiveRoomId(room.id), setActivePage('room')) : handleJoinRoom(room)} className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 text-sm font-semibold text-[#E3D8C6] disabled:opacity-50">{room.role ? 'Abrir sala' : 'Entrar na sala'}</button>
+                        <button disabled={isSubmitting} type="button" onClick={() => room.role ? (setActiveRoomId(room.id), setActivePage('room'), setMobilePanel('chat')) : room.requiresPassword ? setJoiningRoom(room) : handleJoinRoom(room)} className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 text-sm font-semibold text-[#E3D8C6] disabled:opacity-50">{room.role ? 'Abrir sala' : room.requiresPassword ? 'Informar senha' : 'Entrar na sala'}</button>
                       </div>
                     </article>
                   ))}
                 </div>
                 {visibleRooms.length === 0 && <p className="rounded border border-[#A88956]/20 bg-[#202124] p-5 text-sm text-[#D0CCC4]/70">{rooms.length === 0 ? 'Nenhuma sala disponível.' : 'Nenhuma sala corresponde à busca.'}</p>}
+                {joiningRoom && <form onSubmit={event => { event.preventDefault(); void handleJoinRoom(joiningRoom); }} className="mt-5 max-w-lg rounded-lg border border-[#A88956]/40 bg-[#202124] p-4">
+                  <h3 className="font-semibold text-[#E3D8C6]">Entrar em {joiningRoom.name}</h3>
+                  <label className="mt-3 block text-sm text-[#E3D8C6]">Senha da mesa
+                    <input required type="password" autoComplete="current-password" value={joinPassword} onChange={event => setJoinPassword(event.target.value)} className="mt-1 min-h-11 w-full rounded border border-[#A88956]/40 bg-[#101113] px-3" />
+                  </label>
+                  <div className="mt-3 flex gap-2">
+                    <button disabled={isSubmitting} type="submit" className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-4 text-sm">Entrar</button>
+                    <button type="button" onClick={() => { setJoiningRoom(null); setJoinPassword(''); }} className="min-h-10 rounded border border-[#A88956]/30 px-4 text-sm">Cancelar</button>
+                  </div>
+                </form>}
               </>
             )}
           </div>
@@ -900,121 +1105,126 @@ export function App() {
               <Compass className="w-4 h-4" />
               <span>Biblioteca</span>
             </h2>
-            <p className="mt-1 text-xs text-[#D0CCC4]/60">{activeRoom?.name || 'Sala'}{activeRoom?.isDemo ? ' · demonstração' : ''}</p>
+            <p className="mt-1 text-xs text-[#D0CCC4]/60">{activeRoom?.name || 'Sala'}</p>
           </div>
           <nav aria-label="Biblioteca da mesa" className="space-y-1 border-b border-[#A88956]/20 p-2">
-            <button type="button" onClick={() => setActivePage('campaigns')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E]">
+            <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => setActivePage('campaigns')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E] disabled:opacity-40">
               <Home className="h-4 w-4" aria-hidden="true" /> Campanhas <span className="ml-auto text-[#A88956]">{campaigns.length}</span>
             </button>
-            <button type="button" onClick={() => setActivePage('characters')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E]">
+            <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => setActivePage('characters')} className="flex min-h-9 w-full items-center gap-2 rounded px-2 text-left text-xs text-[#D0CCC4]/80 hover:bg-[#292A2E] disabled:opacity-40">
               <Users className="h-4 w-4" aria-hidden="true" /> Fichas <span className="ml-auto text-[#A88956]">{characters.length}</span>
             </button>
           </nav>
-          <div className="flex items-center justify-between border-b border-[#A88956]/15 px-3 py-2 text-[10px] font-semibold uppercase tracking-wider text-[#A88956]/80">
-            <span>Tokens da sala</span>
-            <span>{tokens.length}</span>
-          </div>
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {tokens.map(token => (
-              <button
-                type="button"
-                key={token.id}
-                onClick={() => setSelectedTokenId(token.id)}
-                aria-pressed={selectedTokenId === token.id}
-                className={`w-full rounded border p-3 text-left transition ${selectedTokenId === token.id ? 'bg-[#542126]/40 border-[#A88956]' : 'bg-[#101113]/60 border-[#A88956]/20 hover:border-[#A88956]/50'}`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-sm text-[#E3D8C6]">{token.name}</span>
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: token.color }}></span>
-                </div>
-                <div className="text-xs text-[#D0CCC4]/70 mb-2">Pos: ({token.x}, {token.y})</div>
-                <div className="flex items-center space-x-2">
-                  <div className="flex-1 bg-black/60 rounded-full h-2 border border-[#A88956]/30 overflow-hidden">
-                    <div 
-                      className="bg-emerald-600 h-full transition-all duration-300"
-                      style={{ width: `${(token.hp / token.maxHp) * 100}%` }}
-                    ></div>
-                  </div>
-                  <span className="text-xs font-mono text-[#A88956]">{token.hp}/{token.maxHp} HP</span>
-                </div>
-              </button>
-            ))}
-            {tokens.length === 0 && <p className="rounded border border-[#A88956]/20 p-3 text-xs text-[#D0CCC4]/60">Esta sala ainda não tem tokens no mapa.</p>}
-          </div>
-
-          <div className="p-3 border-t border-[#A88956]/20 bg-[#191A1D]">
-            <div className="mb-2 text-xs uppercase tracking-wider text-[#A88956]/70">Controles rápidos do token</div>
-            {selectedTokenId && activeRoom?.role === 'gm' && (
-              <div className="grid grid-cols-3 gap-1">
-                <div></div>
-                <button type="button" aria-label="Mover token para cima" onClick={() => moveToken(selectedTokenId, 0, -1)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▲</button>
-                <div></div>
-                <button type="button" aria-label="Mover token para a esquerda" onClick={() => moveToken(selectedTokenId, -1, 0)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">◀</button>
-                <div className="flex items-center justify-center text-xs text-[#A88956]">Mover</div>
-                <button type="button" aria-label="Mover token para a direita" onClick={() => moveToken(selectedTokenId, 1, 0)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▶</button>
-                <div></div>
-                <button type="button" aria-label="Mover token para baixo" onClick={() => moveToken(selectedTokenId, 0, 1)} className="rounded border border-[#A88956]/40 bg-[#542126] p-1.5 text-xs font-bold text-[#A88956] hover:bg-[#722E34]">▼</button>
-                <div></div>
+          {activeRoom?.role === 'gm' && <form onSubmit={handleSaveLibraryItem} className="space-y-2 border-b border-[#A88956]/20 p-3">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-[#A88956]">Criar item</h3>
+            <input required maxLength={80} value={libraryName} onChange={event => setLibraryName(event.target.value)} placeholder="Nome" aria-label="Nome do item" className="min-h-9 w-full rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs" />
+            <div className="grid grid-cols-2 gap-2">
+              <select aria-label="Tipo do item" value={libraryItemType} onChange={event => setLibraryItemType(event.target.value as 'folder' | 'map')} className="min-h-9 rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs">
+                <option value="folder">Pasta</option>
+                <option value="map">Mapa/grid</option>
+              </select>
+              <select aria-label="Visibilidade do item" value={libraryVisibility} onChange={event => setLibraryVisibility(event.target.value as 'private' | 'room')} className="min-h-9 rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs">
+                <option value="room">Todos na sala</option>
+                <option value="private">Só mestre</option>
+              </select>
+            </div>
+            <select aria-label="Pasta do item" value={libraryParentId} onChange={event => setLibraryParentId(event.target.value)} className="min-h-9 w-full rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs">
+              <option value="">Raiz da biblioteca</option>
+              {libraryItems.filter(item => item.itemType === 'folder').map(folder => <option key={folder.id} value={folder.id}>{folder.name}</option>)}
+            </select>
+            {libraryItemType === 'map' && <>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="text-[10px] text-[#D0CCC4]/70">Colunas
+                  <input type="number" min={1} max={100} value={libraryWidth} onChange={event => setLibraryWidth(Number(event.target.value))} className="mt-1 min-h-9 w-full rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs" />
+                </label>
+                <label className="text-[10px] text-[#D0CCC4]/70">Linhas
+                  <input type="number" min={1} max={100} value={libraryHeight} onChange={event => setLibraryHeight(Number(event.target.value))} className="mt-1 min-h-9 w-full rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs" />
+                </label>
               </div>
-            )}
-            {selectedTokenId && activeRoom?.role !== 'gm' && <p className="text-xs text-[#D0CCC4]/60">Somente o mestre pode mover tokens nesta versão.</p>}
+              <input type="url" maxLength={2048} value={libraryBackgroundUrl} onChange={event => setLibraryBackgroundUrl(event.target.value)} placeholder="URL HTTPS da imagem de fundo" aria-label="URL da imagem de fundo do mapa" className="min-h-9 w-full rounded border border-[#A88956]/30 bg-[#101113] px-2 text-xs" />
+            </>}
+            <button type="submit" className="min-h-9 w-full rounded border border-[#A88956]/50 bg-[#542126] px-3 text-xs font-semibold text-[#E3D8C6]">Salvar na biblioteca</button>
+          </form>}
+          <div className="flex-1 space-y-2 overflow-y-auto p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#A88956]/80">Itens da mesa · {libraryItems.length}</p>
+            {libraryItems.map(item => <article key={item.id} className={`rounded border p-2 ${selectedLibraryItemId === item.id ? 'border-[#A88956] bg-[#542126]/40' : 'border-[#A88956]/20 bg-[#101113]/60'}`}>
+              <button type="button" onClick={() => {
+                if (item.itemType === 'map') {
+                  setSelectedLibraryItemId(item.id);
+                  setMobilePanel('map');
+                } else {
+                  setLibraryParentId(item.id);
+                  setLibraryItemType('folder');
+                }
+              }} aria-pressed={selectedLibraryItemId === item.id} className="w-full text-left text-xs">
+                <span className="mr-2 text-[#A88956]">{item.itemType === 'folder' ? '▸' : '▦'}</span>
+                <span className="font-semibold text-[#E3D8C6]">{item.name}</span>
+                <span className="ml-1 text-[10px] text-[#D0CCC4]/50">{item.visibility === 'private' ? '· privado' : ''}</span>
+                {item.itemType === 'map' && <span className="mt-1 block text-[10px] text-[#D0CCC4]/50">{item.data.width} × {item.data.height}</span>}
+              </button>
+              {activeRoom?.role === 'gm' && <button type="button" onClick={() => void handleDeleteLibraryItem(item)} className="mt-2 min-h-8 rounded border border-red-800/50 px-2 text-[10px] text-red-200">Excluir</button>}
+            </article>)}
+            {libraryItems.length === 0 && <p className="rounded border border-[#A88956]/20 p-3 text-xs text-[#D0CCC4]/60">{activeRoom?.role === 'spectator' ? 'Espectadores não têm acesso à biblioteca.' : 'A biblioteca ainda está vazia.'}</p>}
           </div>
         </aside>
 
         {/* Center: Tactical Map Grid */}
-        <main className={`${mobilePanel === 'map' ? 'flex' : 'hidden'} relative min-w-0 flex-1 flex-col overflow-hidden bg-[#101113] md:flex`}>
+        <main className={`${mobilePanel === 'map' || mobilePanel === 'chat' || mobilePanel === 'dice' ? 'flex' : 'hidden'} relative min-w-0 flex-1 flex-col overflow-hidden bg-[#101113] md:flex`}>
           <div className="absolute inset-0 bg-[radial-gradient(#35373A_1px,transparent_1px)] [background-size:24px_24px] opacity-30"></div>
           
           <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-auto p-2 sm:p-6">
-            <div className="w-full max-w-[560px] rounded-lg border-2 border-[#A88956]/50 bg-[#191A1D]/90 p-2 shadow-2xl backdrop-blur sm:p-4">
+            {mobilePanel !== 'map' && mobilePanel !== 'dice' ? <div className="flex h-full min-h-0 w-full max-w-4xl flex-col overflow-hidden rounded-lg border border-[#A88956]/30 bg-[#191A1D]/90 shadow-xl">
+              <div className="flex items-center justify-between border-b border-[#A88956]/20 bg-[#292A2E] px-4 py-3">
+                <div>
+                  <h2 className="font-semibold text-[#E3D8C6]">Chat da mesa</h2>
+                  <p className="text-[10px] text-[#D0CCC4]/50">Mensagens persistidas pelo servidor</p>
+                </div>
+                <span className="text-xs text-[#D0CCC4]/50">{messages.length}</span>
+              </div>
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3 sm:p-5">
+                {messages.map(message => <article key={message.id} className="rounded border border-[#A88956]/20 bg-[#101113]/80 p-3">
+                  <div className="mb-1 flex items-center justify-between gap-2 text-xs">
+                    <span className="font-semibold text-[#A88956]">{message.user}</span>
+                    <time className="font-mono text-[10px] text-[#D0CCC4]/40">{message.time}</time>
+                  </div>
+                  <p className="whitespace-pre-wrap break-words text-sm text-[#D0CCC4]">{message.text}</p>
+                </article>)}
+                {messages.length === 0 && <p className="rounded border border-dashed border-[#A88956]/20 p-5 text-center text-sm text-[#D0CCC4]/60">Ainda não há mensagens nesta mesa.</p>}
+              </div>
+            </div> : mobilePanel === 'dice' ? <div className="w-full max-w-3xl rounded-lg border border-[#A88956]/30 bg-[#191A1D]/90 p-4 shadow-xl">
+              <h2 className="mb-3 font-semibold text-[#E3D8C6]">Histórico de rolagens</h2>
+              <div className="space-y-2">
+                {diceRolls.map(roll => <article key={roll.id} className="flex items-center justify-between rounded border border-[#A88956]/20 bg-[#101113]/80 p-3">
+                  <div><p className="text-sm font-semibold text-[#E3D8C6]">{roll.user} · {roll.expression}</p><time className="text-[10px] text-[#D0CCC4]/50">{roll.time}</time></div>
+                  <strong className="rounded border border-[#A88956]/40 bg-[#542126]/60 px-3 py-1 font-mono text-[#A88956]">{roll.total}</strong>
+                </article>)}
+                {diceRolls.length === 0 && <p className="text-sm text-[#D0CCC4]/60">Ainda não há rolagens nesta mesa.</p>}
+              </div>
+            </div> : selectedLibraryItem ? <div className="w-full max-w-[760px] rounded-lg border-2 border-[#A88956]/50 bg-[#191A1D]/90 p-2 shadow-2xl backdrop-blur sm:p-4">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-1 px-1 sm:px-2">
                 <div className="text-sm font-semibold text-[#A88956] flex items-center space-x-2">
                   <Compass className="w-4 h-4" />
-                  <span>{activeRoom?.name || 'Sala'}</span>
+                  <span>{selectedLibraryItem.name}</span>
                 </div>
-                <div className="text-xs text-[#D0CCC4]/60 font-mono">Grade 12 × 12</div>
+                <div className="text-xs text-[#D0CCC4]/60 font-mono">Grade {gridWidth} × {gridHeight}</div>
               </div>
 
-              <div 
-                className="grid w-full gap-0.5 rounded border border-[#A88956]/30 bg-[#101113] p-1 sm:gap-1 sm:p-2"
-                style={{ gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))` }}
-              >
-                {Array.from({ length: gridSize * gridSize }).map((_, idx) => {
-                  const x = idx % gridSize;
-                  const y = Math.floor(idx / gridSize);
-                  const tokenAtPos = tokens.find(t => t.x === x && t.y === y);
-
-                  return (
-                    <button
-                    type="button"
-                    key={idx}
-                      onClick={() => {
-                        if (activeRoom?.role !== 'gm' || !selectedTokenId || !ws || ws.readyState !== WebSocket.OPEN) return;
-                        ws.send(JSON.stringify({ type: 'MOVE_TOKEN', payload: { id: selectedTokenId, x, y } }));
-                      }}
-                      disabled={activeRoom?.role !== 'gm'}
-                      aria-label={`Mover token para coluna ${x + 1}, linha ${y + 1}`}
-                      className="relative flex aspect-square min-w-0 cursor-pointer items-center justify-center border border-[#A88956]/10 bg-[#202124]/50 p-0 transition hover:border-[#A88956]/60 hover:bg-[#34363A] focus:z-10 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-[#A88956]"
-                    >
-                      {tokenAtPos && (
-                        <div 
-                          className="flex h-5 w-5 items-center justify-center rounded-full border border-[#E3D8C6] text-[9px] font-bold shadow-lg sm:h-8 sm:w-8 sm:border-2 sm:text-xs"
-                          style={{ backgroundColor: tokenAtPos.color }}
-                          title={tokenAtPos.name}
-                        >
-                          {tokenAtPos.name.substring(0, 2).toUpperCase()}
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
+              <div className="relative w-full overflow-auto rounded border border-[#A88956]/30" style={{ backgroundImage: selectedLibraryItem.data.backgroundUrl ? `url("${selectedLibraryItem.data.backgroundUrl}")` : undefined, backgroundSize: '100% 100%' }}>
+                <div className="grid min-w-[320px] gap-px bg-[#A88956]/35 p-px" style={{ gridTemplateColumns: `repeat(${gridWidth}, minmax(0, 1fr))`, aspectRatio: `${gridWidth} / ${gridHeight}` }}>
+                  {Array.from({ length: gridWidth * gridHeight }).map((_, idx) => <div key={idx} className="min-w-0 bg-[#101113]/10" aria-hidden="true" />)}
+                </div>
               </div>
-            </div>
+              <p className="mt-2 text-[10px] text-[#D0CCC4]/50">Visualização do mapa. Tokens e movimento sincronizado ainda não estão implementados.</p>
+            </div> : <div className="max-w-md rounded-lg border border-[#A88956]/25 bg-[#191A1D]/90 p-6 text-center shadow-xl">
+              <Compass className="mx-auto h-8 w-8 text-[#A88956]" aria-hidden="true" />
+              <h2 className="mt-3 text-lg font-semibold text-[#E3D8C6]">{activeRoom?.name || 'Mesa'}</h2>
+              <p className="mt-2 text-sm text-[#D0CCC4]/70">Nenhum mapa aberto. Selecione um mapa na biblioteca{activeRoom?.role === 'gm' ? ' ou crie uma pasta/mapa pelo painel à esquerda' : ''}.</p>
+            </div>}
           </div>
         </main>
 
         {/* Right Sidebar: Chat, Dice & Logs */}
-        <section className={`${mobilePanel === 'chat' || mobilePanel === 'dice' || mobilePanel === 'members' ? 'flex' : 'hidden'} min-w-0 w-full flex-col bg-[#202124] md:flex md:w-80 md:border-l md:border-[#A88956]/20`}>
+        <section className="hidden">
           <div className="flex border-b border-[#A88956]/20 bg-[#292A2E]">
             <button 
               onClick={() => { setActiveTab('chat'); setMobilePanel('chat'); }}
@@ -1025,7 +1235,8 @@ export function App() {
             </button>
             <button 
               onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }}
-              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition ${activeTab === 'dice' ? 'bg-[#542126] text-[#E3D8C6] border-b-2 border-[#A88956]' : 'text-[#D0CCC4]/60 hover:text-[#D0CCC4]'}`}
+              disabled={activeRoom?.role === 'spectator'}
+              className={`flex-1 py-3 text-xs font-semibold uppercase tracking-wider flex items-center justify-center space-x-1.5 transition disabled:cursor-not-allowed disabled:opacity-40 ${activeTab === 'dice' ? 'bg-[#542126] text-[#E3D8C6] border-b-2 border-[#A88956]' : 'text-[#D0CCC4]/60 hover:text-[#D0CCC4]'}`}
             >
               <Dices className="w-3.5 h-3.5" />
               <span>Dados</span>
@@ -1124,11 +1335,17 @@ export function App() {
                 <article key={member.id} className="rounded border border-[#A88956]/20 bg-[#101113]/80 p-3">
                   <div className="flex items-center justify-between gap-2">
                     <span className="truncate text-sm font-semibold text-[#E3D8C6]">{member.username}</span>
-                    <span className="shrink-0 rounded border border-[#A88956]/30 px-2 py-1 text-[10px] uppercase text-[#A88956]">{member.role === 'gm' ? 'Mestre' : 'Jogador'}</span>
+                    <span className="shrink-0 rounded border border-[#A88956]/30 px-2 py-1 text-[10px] uppercase text-[#A88956]">{member.role === 'gm' ? 'Mestre' : member.role === 'player' ? 'Jogador' : 'Espectador'}</span>
                   </div>
                   {member.mutedUntil && member.mutedUntil > new Date().toISOString() && <p className="mt-2 text-xs text-amber-200">Silenciado até {new Date(member.mutedUntil).toLocaleTimeString()}.</p>}
-                  {activeRoom?.role === 'gm' && member.role === 'player' && (
+                  {activeRoom?.role === 'gm' && member.role !== 'gm' && (
                     <div className="mt-3 flex flex-wrap gap-2">
+                      <label className="flex items-center gap-2 text-xs text-[#D0CCC4]/70">Papel
+                        <select value={member.role} onChange={event => void handleSetMemberRole(member, event.target.value as 'player' | 'spectator')} className="min-h-9 rounded border border-[#A88956]/30 bg-[#101113] px-2 text-[#E3D8C6]">
+                          <option value="player">Jogador</option>
+                          <option value="spectator">Espectador</option>
+                        </select>
+                      </label>
                       {member.mutedUntil ? (
                         <button type="button" onClick={() => handleModeration(member, 'unmute')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#D0CCC4]">Remover silêncio</button>
                       ) : (
@@ -1155,12 +1372,69 @@ export function App() {
             </div>
           )}
         </section>
+        <section className={`${mobilePanel === 'members' ? 'flex' : 'hidden'} min-w-0 w-full shrink-0 flex-col bg-[#202124] md:flex md:w-72 md:border-l md:border-[#A88956]/20`}>
+          <div className="border-b border-[#A88956]/20 bg-[#292A2E] p-4">
+            <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-[#A88956]"><Users className="h-4 w-4" aria-hidden="true" />Participantes</h2>
+            <p className="mt-1 text-[10px] text-[#D0CCC4]/50">Membros cadastrados; presença online não é exibida.</p>
+          </div>
+          <div className="flex-1 space-y-4 overflow-y-auto p-3">
+            {(['gm', 'player', 'spectator'] as const).map(role => {
+              const roleMembers = roomMembers.filter(member => member.role === role);
+              if (roleMembers.length === 0) return null;
+              const title = role === 'gm' ? 'Mestre' : role === 'player' ? 'Jogadores' : 'Espectadores';
+              return <section key={role} aria-label={title}>
+                <h3 className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#A88956]/80">{title} · {roleMembers.length}</h3>
+                <div className="space-y-2">
+                  {roleMembers.map(member => <article key={member.id} className="rounded border border-[#A88956]/20 bg-[#101113]/80 p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="truncate text-sm font-semibold text-[#E3D8C6]">{member.username}</span>
+                      <span className="shrink-0 rounded border border-[#A88956]/30 px-2 py-1 text-[10px] uppercase text-[#A88956]">{role === 'gm' ? 'Mestre' : role === 'player' ? 'Jogador' : 'Espectador'}</span>
+                    </div>
+                    {member.mutedUntil && member.mutedUntil > new Date().toISOString() && <p className="mt-2 text-xs text-amber-200">Silenciado até {new Date(member.mutedUntil).toLocaleTimeString()}.</p>}
+                    {activeRoom?.role === 'gm' && role !== 'gm' && <div className="mt-3 space-y-2">
+                      <label className="flex items-center justify-between gap-2 text-xs text-[#D0CCC4]/70">Papel
+                        <select value={member.role} onChange={event => void handleSetMemberRole(member, event.target.value as 'player' | 'spectator')} className="min-h-9 rounded border border-[#A88956]/30 bg-[#101113] px-2 text-[#E3D8C6]">
+                          <option value="player">Jogador</option>
+                          <option value="spectator">Espectador</option>
+                        </select>
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        <button type="button" onClick={() => handleModeration(member, member.mutedUntil ? 'unmute' : 'mute')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#D0CCC4]">{member.mutedUntil ? 'Remover silêncio' : 'Silenciar 10 min'}</button>
+                        <button type="button" onClick={() => handleModeration(member, 'kick')} className="min-h-9 rounded border border-red-800/60 px-2 text-xs text-red-200">Remover</button>
+                        <button type="button" onClick={() => handleModeration(member, 'ban')} className="min-h-9 rounded border border-red-800/60 px-2 text-xs text-red-200">Banir</button>
+                      </div>
+                    </div>}
+                  </article>)}
+                </div>
+              </section>;
+            })}
+            {roomMembers.length === 0 && <p className="rounded border border-[#A88956]/20 p-3 text-xs text-[#D0CCC4]/60">A lista de membros está vazia.</p>}
+            {activeRoom?.role === 'gm' && bannedMembers.length > 0 && <section className="border-t border-[#A88956]/20 pt-4">
+              <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-red-200">Banidos</h3>
+              {bannedMembers.map(member => <div key={member.id} className="mb-2 flex items-center justify-between gap-2 rounded border border-red-900/50 p-2">
+                <span className="truncate text-xs">{member.username}</span>
+                <button type="button" onClick={() => handleModeration(member, 'unban')} className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#A88956]">Desbanir</button>
+              </div>)}
+            </section>}
+          </div>
+        </section>
       </div>
+      <footer className="grid shrink-0 gap-2 border-t border-[#A88956]/30 bg-[#191A1D] p-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:px-3">
+        <form onSubmit={handleSendMessage} className="flex min-w-0 gap-2">
+          <input type="text" value={inputMessage} onChange={event => setInputMessage(event.target.value)} aria-label="Mensagem da sala" maxLength={500} placeholder="Escreva uma mensagem..." className="min-h-10 min-w-0 flex-1 rounded border border-[#A88956]/40 bg-[#101113] px-3 text-sm text-[#D0CCC4]" />
+          <button type="submit" aria-label="Enviar mensagem" className="flex min-h-10 min-w-10 items-center justify-center rounded border border-[#A88956]/50 bg-[#542126] px-3 text-[#A88956] hover:bg-[#722E34]"><Send className="h-4 w-4" aria-hidden="true" /></button>
+        </form>
+        <div className="flex min-w-0 items-center gap-1">
+          <input type="text" value={diceExpr} onChange={event => setDiceExpr(event.target.value)} aria-label="Expressão de dados" placeholder="1d20" className="min-h-10 min-w-0 flex-1 rounded border border-[#A88956]/40 bg-[#101113] px-2 font-mono text-xs sm:w-24 sm:flex-none" />
+          <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => handleRollDice(diceExpr)} className="min-h-10 rounded border border-[#A88956]/60 bg-[#542126] px-3 text-xs font-semibold text-[#E3D8C6] disabled:opacity-40">Rolar</button>
+          <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => handleRollDice('1d20')} aria-label="Rolar 1d20" className="min-h-10 rounded border border-[#A88956]/30 px-2 font-mono text-[10px] text-[#A88956] disabled:opacity-40">d20</button>
+        </div>
+      </footer>
       <nav aria-label="Painéis da sala" className="grid shrink-0 grid-cols-5 border-t border-[#A88956]/30 bg-[#191A1D] p-1">
         <button type="button" onClick={() => { setActivePage('room'); setMobilePanel('map'); }} aria-current={mobilePanel === 'map' ? 'page' : undefined} className={`flex min-h-11 flex-col items-center justify-center gap-1 rounded text-[10px] sm:text-xs ${mobilePanel === 'map' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Compass className="h-4 w-4" aria-hidden="true" />Jogo</button>
         <button type="button" onClick={() => { setActivePage('room'); setMobilePanel('library'); }} aria-current={mobilePanel === 'library' ? 'page' : undefined} className={`flex min-h-11 flex-col items-center justify-center gap-1 rounded text-[10px] sm:text-xs ${mobilePanel === 'library' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Biblioteca</button>
         <button type="button" onClick={() => { setActiveTab('chat'); setMobilePanel('chat'); }} aria-current={mobilePanel === 'chat' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'chat' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><MessageSquare className="h-4 w-4" aria-hidden="true" />Chat</button>
-        <button type="button" onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }} aria-current={mobilePanel === 'dice' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'dice' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Dices className="h-4 w-4" aria-hidden="true" />Dados</button>
+        <button type="button" disabled={activeRoom?.role === 'spectator'} onClick={() => { setActiveTab('dice'); setMobilePanel('dice'); }} aria-current={mobilePanel === 'dice' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs disabled:opacity-30 ${mobilePanel === 'dice' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Dices className="h-4 w-4" aria-hidden="true" />Dados</button>
         <button type="button" onClick={() => { setActiveTab('members'); setMobilePanel('members'); }} aria-current={mobilePanel === 'members' ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded text-xs ${mobilePanel === 'members' ? 'text-[#E3D8C6]' : 'text-[#D0CCC4]/60'}`}><Users className="h-4 w-4" aria-hidden="true" />Pessoas</button>
       </nav>
       </>

@@ -28,17 +28,21 @@ async function registerTestUser(runtime, username) {
   const response = await fetch(`${runtime.origin}/api/auth/register`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ username, password: 'a-test-password-long-enough' })
+    body: JSON.stringify({
+      username,
+      email: `${username.replace(/[^A-Za-z0-9]/g, '')}@example.test`,
+      password: 'a-test-password-long-enough'
+    })
   });
   assert.equal(response.status, 200);
   return response.headers.get('set-cookie').split(';')[0];
 }
 
-async function createTestRoom(runtime, cookie, name) {
+async function createTestRoom(runtime, cookie, name, options = {}) {
   const response = await fetch(`${runtime.origin}/api/rooms`, {
     method: 'POST',
     headers: { cookie, 'content-type': 'application/json' },
-    body: JSON.stringify({ name, gameSystem: 'Sistema de teste', description: 'Sala de teste automatizado' })
+    body: JSON.stringify({ name, gameSystem: 'Sistema de teste', description: 'Sala de teste automatizado', ...options })
   });
   assert.equal(response.status, 201);
   return (await response.json()).room;
@@ -79,27 +83,27 @@ test('authentication validates accounts, rotates sessions, logs out, and rejects
     const invalidUsername = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: 'bad!', password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username: 'bad!', email: 'bad@example.test', password: 'a-test-password-long-enough' })
     });
     assert.equal(invalidUsername.status, 400);
     const invalidPassword = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password: 'short' })
+      body: JSON.stringify({ username, email: `${username}@example.test`, password: 'short' })
     });
     assert.equal(invalidPassword.status, 400);
 
     const originRejected = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { origin: 'https://untrusted.example', 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username, email: `${username}@example.test`, password: 'a-test-password-long-enough' })
     });
     assert.equal(originRejected.status, 403);
 
     const registration = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username, email: `${username}@example.test`, password: 'a-test-password-long-enough' })
     });
     assert.equal(registration.status, 200);
     const registrationCookie = registration.headers.get('set-cookie').split(';')[0];
@@ -108,19 +112,19 @@ test('authentication validates accounts, rotates sessions, logs out, and rejects
     const duplicate = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: username.toUpperCase(), password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username: username.toUpperCase(), email: `${username}@example.test`, password: 'a-test-password-long-enough' })
     });
     assert.equal(duplicate.status, 409);
     const fifthRegistrationAttempt = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: 'also-bad!', password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username: 'also-bad!', email: 'also@example.test', password: 'a-test-password-long-enough' })
     });
     assert.equal(fifthRegistrationAttempt.status, 400);
     const rateLimited = await fetch(`${runtime.origin}/api/auth/register`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username: 'one-more-bad!', password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ username: 'one-more-bad!', email: 'one-more@example.test', password: 'a-test-password-long-enough' })
     });
     assert.equal(rateLimited.status, 429);
     assert.ok(Number(rateLimited.headers.get('retry-after')) > 0);
@@ -128,13 +132,13 @@ test('authentication validates accounts, rotates sessions, logs out, and rejects
     const invalidLogin = await fetch(`${runtime.origin}/api/auth/login`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password: 'wrong-password' })
+      body: JSON.stringify({ identifier: `${username}@example.test`, password: 'wrong-password' })
     });
     assert.equal(invalidLogin.status, 401);
     const login = await fetch(`${runtime.origin}/api/auth/login`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password: 'a-test-password-long-enough' })
+      body: JSON.stringify({ identifier: `${username}@example.test`, password: 'a-test-password-long-enough' })
     });
     assert.equal(login.status, 200);
     const loginCookie = login.headers.get('set-cookie').split(';')[0];
@@ -278,12 +282,10 @@ test('WebSocket validates actions and state survives a backend restart', async (
   try {
     runtime = await startTestServer(databasePath);
     const cookie = await registerTestUser(runtime, `player-${crypto.randomUUID().slice(0, 8)}`);
-    const joinResponse = await fetch(`${runtime.origin}/api/rooms/demo/join`, {
-      method: 'POST',
-      headers: { cookie }
-    });
+    const room = await createTestRoom(runtime, cookie, 'Persistência WebSocket');
+    const joinResponse = await joinTestRoom(runtime, cookie, room.id);
     assert.equal(joinResponse.status, 200);
-    runtime = { ...runtime, ...(await connectToRoom(runtime, cookie, 'demo')) };
+    runtime = { ...runtime, ...(await connectToRoom(runtime, cookie, room.id)) };
     assert.equal(runtime.initialState.type, 'INIT_STATE');
 
     const invalidMessage = nextMessage(runtime.socket);
@@ -299,7 +301,7 @@ test('WebSocket validates actions and state survives a backend restart', async (
     await stopTestServer(runtime);
     runtime = null;
     runtime = await startTestServer(databasePath);
-    const reconnected = await connectToRoom(runtime, authCookie, 'demo');
+    const reconnected = await connectToRoom(runtime, authCookie, room.id);
     runtime = { ...runtime, ...reconnected };
     assert.equal(runtime.initialState.payload.messages.some(message => message.text === 'Valid protocol action'), true);
   } finally {
@@ -438,6 +440,14 @@ test('campaigns, private notes, and characters persist with room and owner autho
     const room = await createTestRoom(runtime, gmCookie, 'Campanha e fichas');
     await joinTestRoom(runtime, playerCookie, room.id);
     await joinTestRoom(runtime, otherCookie, room.id);
+    const playerUser = (await (await fetch(`${runtime.origin}/api/me`, { headers: { cookie: playerCookie } })).json()).user;
+    const roleUpdate = await fetch(`${runtime.origin}/api/rooms/${room.id}/members/${playerUser.id}/role`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'player' })
+    });
+
+    assert.equal(roleUpdate.status, 200);
 
     const deniedCampaign = await fetch(`${runtime.origin}/api/rooms/${room.id}/campaigns`, {
       method: 'POST',
@@ -464,15 +474,26 @@ test('campaigns, private notes, and characters persist with room and owner autho
     const { note } = await noteResponse.json();
     assert.equal((await fetch(`${runtime.origin}/api/campaigns/${campaign.id}/notes`, { headers: { cookie: playerCookie } })).status, 403);
 
-    const characterResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, {
+    const deniedCharacterResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, {
       method: 'POST',
       headers: { cookie: playerCookie, 'content-type': 'application/json' },
       body: JSON.stringify({ name: 'Aventureira', campaignId: campaign.id, data: { attributes: { vigor: 12 }, notes: 'Minha ficha' } })
     });
+    assert.equal(deniedCharacterResponse.status, 403);
+    const characterResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Aventureira',
+        campaignId: campaign.id,
+        ownerUserId: playerUser.id,
+        visibility: 'room',
+        data: { attributes: { vigor: 12 }, notes: 'Minha ficha' }
+      })
+    });
     assert.equal(characterResponse.status, 201);
     const { character } = await characterResponse.json();
-    const otherCharacters = await (await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, { headers: { cookie: otherCookie } })).json();
-    assert.equal(otherCharacters.characters.length, 0);
+    assert.equal((await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, { headers: { cookie: otherCookie } })).status, 403);
     const gmCharacters = await (await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, { headers: { cookie: gmCookie } })).json();
     assert.equal(gmCharacters.characters[0].name, 'Aventureira');
 
@@ -496,6 +517,160 @@ test('campaigns, private notes, and characters persist with room and owner autho
     assert.equal(persistedCharacter.characters[0].name, 'Aventureira editada');
     const persistedNote = await (await fetch(`${runtime.origin}/api/campaigns/${campaign.id}/notes`, { headers: { cookie: gmCookie } })).json();
     assert.equal(persistedNote.notes[0].content, note.content);
+  } finally {
+    if (runtime) await stopTestServer(runtime);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('password rooms, library visibility, and library persistence are enforced', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rrpg-library-'));
+  const databasePath = path.join(directory, 'test.sqlite');
+  let runtime;
+  try {
+    runtime = await startTestServer(databasePath);
+    const gmCookie = await registerTestUser(runtime, `gm-${crypto.randomUUID().slice(0, 8)}`);
+    const playerCookie = await registerTestUser(runtime, `player-${crypto.randomUUID().slice(0, 8)}`);
+    const room = await createTestRoom(runtime, gmCookie, 'Mesa com senha', { accessType: 'password', password: 'senha-segura-123' });
+
+    const roomList = await (await fetch(`${runtime.origin}/api/rooms`, { headers: { cookie: playerCookie } })).json();
+    assert.equal(roomList.rooms.find(item => item.id === room.id).requiresPassword, true);
+    assert.equal(Object.hasOwn(roomList.rooms.find(item => item.id === room.id), 'passwordHash'), false);
+    assert.equal((await joinTestRoom(runtime, playerCookie, room.id)).status, 401);
+    const wrongPassword = await fetch(`${runtime.origin}/api/rooms/${room.id}/join`, {
+      method: 'POST',
+      headers: { cookie: playerCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ password: 'senha-errada' })
+    });
+    assert.equal(wrongPassword.status, 401);
+    const joined = await fetch(`${runtime.origin}/api/rooms/${room.id}/join`, {
+      method: 'POST',
+      headers: { cookie: playerCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ password: 'senha-segura-123' })
+    });
+    assert.equal(joined.status, 200);
+    assert.equal((await joined.json()).membership.role, 'spectator');
+    const playerUser = (await (await fetch(`${runtime.origin}/api/me`, { headers: { cookie: playerCookie } })).json()).user;
+    const playerRole = await fetch(`${runtime.origin}/api/rooms/${room.id}/members/${playerUser.id}/role`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'player' })
+    });
+    assert.equal(playerRole.status, 200);
+
+    const deniedCreate = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: playerCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ itemType: 'folder', name: 'Não autorizado' })
+    });
+    assert.equal(deniedCreate.status, 403);
+
+    const folderResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ itemType: 'folder', name: 'Mapas', visibility: 'room' })
+    });
+    assert.equal(folderResponse.status, 201);
+    const folder = (await folderResponse.json()).item;
+    const mapResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        itemType: 'map',
+        parentId: folder.id,
+        name: 'Ruínas',
+        visibility: 'room',
+        data: { width: 15, height: 27, backgroundUrl: 'https://example.test/ruins.png', tokens: [] }
+      })
+    });
+    assert.equal(mapResponse.status, 201);
+    const map = (await mapResponse.json()).item;
+    assert.deepEqual([map.data.width, map.data.height], [15, 27]);
+
+    const visibleItems = await (await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, { headers: { cookie: playerCookie } })).json();
+    assert.deepEqual(visibleItems.items.map(item => item.name).sort(), ['Mapas', 'Ruínas']);
+    const invalidUrl = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ itemType: 'map', name: 'URL inválida', data: { width: 12, height: 12, backgroundUrl: 'javascript:alert(1)' } })
+    });
+    assert.equal(invalidUrl.status, 400);
+
+    await stopTestServer(runtime);
+    runtime = null;
+    runtime = await startTestServer(databasePath);
+    const persisted = await (await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, { headers: { cookie: gmCookie } })).json();
+    assert.equal(persisted.items.find(item => item.id === map.id).data.height, 27);
+  } finally {
+    if (runtime) await stopTestServer(runtime);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test('D&D 5E checks are rolled by the server for assigned characters only', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rrpg-dnd-'));
+  const databasePath = path.join(directory, 'test.sqlite');
+  let runtime;
+  try {
+    runtime = await startTestServer(databasePath);
+    const gmCookie = await registerTestUser(runtime, `gm-${crypto.randomUUID().slice(0, 8)}`);
+    const playerCookie = await registerTestUser(runtime, `player-${crypto.randomUUID().slice(0, 8)}`);
+    const spectatorCookie = await registerTestUser(runtime, `spectator-${crypto.randomUUID().slice(0, 8)}`);
+    const room = await createTestRoom(runtime, gmCookie, 'D&D 5E');
+    await joinTestRoom(runtime, playerCookie, room.id);
+    await joinTestRoom(runtime, spectatorCookie, room.id);
+    const player = (await (await fetch(`${runtime.origin}/api/me`, { headers: { cookie: playerCookie } })).json()).user;
+    const roleResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/members/${player.id}/role`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'player' })
+    });
+    assert.equal(roleResponse.status, 200);
+    const characterResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/characters`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        name: 'Aventureira',
+        ownerUserId: player.id,
+        data: {
+          system: 'dnd5e',
+          abilities: { str: 16, dex: 10, con: 10, int: 10, wis: 10, cha: 10 },
+          proficiencyBonus: 2,
+          proficientSaves: ['str'],
+          proficientSkills: []
+        }
+      })
+    });
+    assert.equal(characterResponse.status, 201);
+    const { character } = await characterResponse.json();
+    const playerClient = await connectToRoom(runtime, playerCookie, room.id);
+    const spectatorClient = await connectToRoom(runtime, spectatorCookie, room.id);
+    runtime = { ...runtime, sockets: [playerClient.socket, spectatorClient.socket] };
+
+    const playerUpdate = nextMessage(playerClient.socket);
+    const spectatorUpdate = nextMessage(spectatorClient.socket);
+    playerClient.socket.send(JSON.stringify({
+      type: 'ROLL_CHARACTER_CHECK',
+      payload: { characterId: character.id, kind: 'savingThrow', key: 'str', result: 999, total: 999 }
+    }));
+    const update = await playerUpdate;
+    await spectatorUpdate;
+    assert.equal(update.type, 'STATE_UPDATE');
+    assert.equal(update.payload.diceRolls[0].expression, '1d20+5');
+    assert.ok(update.payload.diceRolls[0].total >= 6 && update.payload.diceRolls[0].total <= 25);
+
+    const deniedRoll = nextMessage(spectatorClient.socket);
+    spectatorClient.socket.send(JSON.stringify({
+      type: 'ROLL_CHARACTER_CHECK',
+      payload: { characterId: character.id, kind: 'ability', key: 'str' }
+    }));
+    assert.equal((await deniedRoll).type, 'ERROR');
+    await stopTestServer(runtime);
+    runtime = null;
+    runtime = await startTestServer(databasePath);
+    const restored = await connectToRoom(runtime, playerCookie, room.id);
+    runtime = { ...runtime, socket: restored.socket };
+    assert.equal(restored.initialState.payload.diceRolls[0].expression, '1d20+5');
   } finally {
     if (runtime) await stopTestServer(runtime);
     fs.rmSync(directory, { recursive: true, force: true });

@@ -26,10 +26,17 @@ function mapCharacter(character) {
   return { ...fields, data: typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson };
 }
 
+function mapLibraryItem(item) {
+  if (!item) return null;
+  const { dataJson, ...fields } = item;
+  return { ...fields, data: typeof dataJson === 'string' ? JSON.parse(dataJson) : dataJson };
+}
+
 async function getRoomFrom(queryable, roomId) {
   const result = await queryable.query(`
     SELECT id, name, description, game_system AS "gameSystem", visibility,
-      is_demo AS "isDemo", created_by_user_id AS "createdByUserId", created_at AS "createdAt"
+      is_demo AS "isDemo", created_by_user_id AS "createdByUserId", created_at AS "createdAt",
+      access_type AS "accessType", room_password_hash AS "passwordHash"
     FROM rooms WHERE id = $1
   `, [roomId]);
   return result.rows[0] || null;
@@ -133,20 +140,27 @@ async function createPostgresStore(connectionString) {
     },
     async findUserByUsername(username) {
       const result = await pool.query(`
-        SELECT id, username, password_hash AS "passwordHash"
+        SELECT id, username, email, password_hash AS "passwordHash"
         FROM users WHERE LOWER(username) = LOWER($1)
       `, [username]);
       return result.rows[0] || null;
     },
+    async findUserByEmail(email) {
+      const result = await pool.query(`
+        SELECT id, username, email, password_hash AS "passwordHash"
+        FROM users WHERE LOWER(email) = LOWER($1)
+      `, [email]);
+      return result.rows[0] || null;
+    },
     async findUserById(userId) {
-      const result = await pool.query('SELECT id, username FROM users WHERE id = $1', [userId]);
+      const result = await pool.query('SELECT id, username, email FROM users WHERE id = $1', [userId]);
       return result.rows[0] || null;
     },
     async insertUser(user) {
       await pool.query(`
-        INSERT INTO users (id, username, password_hash, created_at)
-        VALUES ($1, $2, $3, $4)
-      `, [user.id, user.username, user.passwordHash, user.createdAt]);
+        INSERT INTO users (id, username, email, password_hash, created_at)
+        VALUES ($1, $2, $3, $4, $5)
+      `, [user.id, user.username, user.email, user.passwordHash, user.createdAt]);
     },
     async createSession(session) {
       await pool.query('DELETE FROM sessions WHERE expires_at <= $1', [session.createdAt]);
@@ -157,7 +171,7 @@ async function createPostgresStore(connectionString) {
     },
     async getSessionUser(tokenHash, now = new Date().toISOString()) {
       const result = await pool.query(`
-        SELECT users.id, users.username, sessions.expires_at AS "expiresAt"
+        SELECT users.id, users.username, users.email, sessions.expires_at AS "expiresAt"
         FROM sessions JOIN users ON users.id = sessions.user_id
         WHERE sessions.token_hash = $1 AND sessions.expires_at > $2
       `, [tokenHash, now]);
@@ -170,11 +184,12 @@ async function createPostgresStore(connectionString) {
       const result = await pool.query(`
         SELECT rooms.id, rooms.name, rooms.description, rooms.game_system AS "gameSystem",
           rooms.visibility, rooms.is_demo AS "isDemo", rooms.created_by_user_id AS "createdByUserId",
-          rooms.created_at AS "createdAt", room_members.role,
+          rooms.created_at AS "createdAt", rooms.access_type AS "accessType",
+          (rooms.access_type = 'password') AS "requiresPassword", room_members.role,
           (SELECT COUNT(*)::INTEGER FROM room_members counts WHERE counts.room_id = rooms.id) AS "memberCount"
         FROM rooms
         LEFT JOIN room_members ON room_members.room_id = rooms.id AND room_members.user_id = $1
-        WHERE rooms.visibility = 'public' OR room_members.user_id IS NOT NULL
+        WHERE rooms.is_demo = FALSE AND (rooms.access_type != 'private' OR room_members.user_id IS NOT NULL)
         ORDER BY rooms.is_demo, rooms.created_at DESC, LOWER(rooms.name)
       `, [userId]);
       return result.rows;
@@ -185,9 +200,9 @@ async function createPostgresStore(connectionString) {
       try {
         await client.query('BEGIN');
         await client.query(`
-          INSERT INTO rooms (id, name, is_demo, created_by_user_id, visibility, game_system, description, created_at)
-          VALUES ($1, $2, FALSE, $3, $4, $5, $6, $7)
-        `, [room.id, room.name, room.ownerId, room.visibility, room.gameSystem, room.description, room.createdAt]);
+          INSERT INTO rooms (id, name, is_demo, created_by_user_id, visibility, game_system, description, created_at, access_type, room_password_hash)
+          VALUES ($1, $2, FALSE, $3, $4, $5, $6, $7, $8, $9)
+        `, [room.id, room.name, room.ownerId, room.visibility, room.gameSystem, room.description, room.createdAt, room.accessType || 'public', room.passwordHash || null]);
         await client.query(`
           INSERT INTO room_members (room_id, user_id, role, joined_at) VALUES ($1, $2, 'gm', $3)
         `, [room.id, room.ownerId, room.createdAt]);
@@ -214,13 +229,13 @@ async function createPostgresStore(connectionString) {
           await client.query('ROLLBACK');
           return { error: 'Você não tem permissão para entrar nesta sala.' };
         }
-        if (room.visibility !== 'public' && !await getRoomMembershipFrom(client, roomId, userId)) {
+        if (room.accessType === 'private' && !await getRoomMembershipFrom(client, roomId, userId)) {
           await client.query('ROLLBACK');
           return { error: 'Você não tem permissão para entrar nesta sala.' };
         }
         await client.query(`
           INSERT INTO room_members (room_id, user_id, role, joined_at)
-          VALUES ($1, $2, 'player', $3) ON CONFLICT (room_id, user_id) DO NOTHING
+          VALUES ($1, $2, 'spectator', $3) ON CONFLICT (room_id, user_id) DO NOTHING
         `, [roomId, userId, joinedAt]);
         const membership = await getRoomMembershipFrom(client, roomId, userId);
         await client.query('COMMIT');
@@ -238,9 +253,16 @@ async function createPostgresStore(connectionString) {
           room_members.muted_until AS "mutedUntil", room_members.joined_at AS "joinedAt"
         FROM room_members JOIN users ON users.id = room_members.user_id
         WHERE room_members.room_id = $1
-        ORDER BY CASE room_members.role WHEN 'gm' THEN 0 ELSE 1 END, LOWER(users.username)
+        ORDER BY CASE room_members.role WHEN 'gm' THEN 0 WHEN 'player' THEN 1 ELSE 2 END, LOWER(users.username)
       `, [roomId]);
       return result.rows;
+    },
+    async setRoomMemberRole(roomId, targetUserId, role) {
+      const result = await pool.query(
+        'UPDATE room_members SET role = $1 WHERE room_id = $2 AND user_id = $3',
+        [role, roomId, targetUserId]
+      );
+      return result.rowCount > 0;
     },
     async listRoomBans(roomId) {
       const result = await pool.query(`
@@ -365,9 +387,9 @@ async function createPostgresStore(connectionString) {
     async listCharacters(roomId, userId, canViewAll) {
       const result = await pool.query(`
         SELECT id, room_id AS "roomId", campaign_id AS "campaignId",
-          owner_user_id AS "ownerUserId", name, data_json AS "dataJson",
+          owner_user_id AS "ownerUserId", name, visibility, data_json AS "dataJson",
           created_at AS "createdAt", updated_at AS "updatedAt"
-        FROM characters WHERE room_id = $1 AND ($2::BOOLEAN OR owner_user_id = $3)
+        FROM characters WHERE room_id = $1 AND ($2::BOOLEAN OR owner_user_id = $3 OR visibility = 'room')
         ORDER BY updated_at DESC
       `, [roomId, canViewAll, userId]);
       return result.rows.map(mapCharacter);
@@ -375,7 +397,7 @@ async function createPostgresStore(connectionString) {
     async getCharacter(characterId) {
       const result = await pool.query(`
         SELECT id, room_id AS "roomId", campaign_id AS "campaignId",
-          owner_user_id AS "ownerUserId", name, data_json AS "dataJson",
+          owner_user_id AS "ownerUserId", name, visibility, data_json AS "dataJson",
           created_at AS "createdAt", updated_at AS "updatedAt"
         FROM characters WHERE id = $1
       `, [characterId]);
@@ -383,20 +405,58 @@ async function createPostgresStore(connectionString) {
     },
     async createCharacter(character) {
       await pool.query(`
-        INSERT INTO characters (id, room_id, campaign_id, owner_user_id, name, data_json, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6::JSONB, $7, $8)
-      `, [character.id, character.roomId, character.campaignId, character.ownerUserId, character.name, JSON.stringify(character.data), character.createdAt, character.updatedAt]);
+        INSERT INTO characters (id, room_id, campaign_id, owner_user_id, name, visibility, data_json, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7::JSONB, $8, $9)
+      `, [character.id, character.roomId, character.campaignId, character.ownerUserId, character.name, character.visibility || 'private', JSON.stringify(character.data), character.createdAt, character.updatedAt]);
       return store.getCharacter(character.id);
     },
-    async updateCharacter(characterId, name, data, campaignId, updatedAt) {
+    async updateCharacter(characterId, name, data, campaignId, visibility, ownerUserId, updatedAt) {
       const result = await pool.query(`
-        UPDATE characters SET name = $1, data_json = $2::JSONB, campaign_id = $3, updated_at = $4
-        WHERE id = $5
-      `, [name, JSON.stringify(data), campaignId, updatedAt, characterId]);
+        UPDATE characters SET name = $1, data_json = $2::JSONB, campaign_id = $3,
+          visibility = $4, owner_user_id = $5, updated_at = $6
+        WHERE id = $7
+      `, [name, JSON.stringify(data), campaignId, visibility, ownerUserId, updatedAt, characterId]);
       return result.rowCount > 0;
     },
     async deleteCharacter(characterId) {
       const result = await pool.query('DELETE FROM characters WHERE id = $1', [characterId]);
+      return result.rowCount > 0;
+    },
+    async listLibraryItems(roomId) {
+      const result = await pool.query(`
+        SELECT id, room_id AS "roomId", parent_id AS "parentId", owner_user_id AS "ownerUserId",
+          item_type AS "itemType", name, visibility, data_json AS "dataJson",
+          created_at AS "createdAt", updated_at AS "updatedAt"
+        FROM library_items WHERE room_id = $1 ORDER BY item_type, LOWER(name)
+      `, [roomId]);
+      return result.rows.map(mapLibraryItem);
+    },
+    async getLibraryItem(itemId) {
+      const result = await pool.query(`
+        SELECT id, room_id AS "roomId", parent_id AS "parentId", owner_user_id AS "ownerUserId",
+          item_type AS "itemType", name, visibility, data_json AS "dataJson",
+          created_at AS "createdAt", updated_at AS "updatedAt"
+        FROM library_items WHERE id = $1
+      `, [itemId]);
+      return mapLibraryItem(result.rows[0] || null);
+    },
+    async createLibraryItem(item) {
+      await pool.query(`
+        INSERT INTO library_items (id, room_id, parent_id, owner_user_id, item_type, name, visibility, data_json, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8::JSONB, $9, $10)
+      `, [item.id, item.roomId, item.parentId, item.ownerUserId, item.itemType, item.name, item.visibility, JSON.stringify(item.data), item.createdAt, item.updatedAt]);
+      return store.getLibraryItem(item.id);
+    },
+    async updateLibraryItem(itemId, fields, updatedAt) {
+      const result = await pool.query(`
+        UPDATE library_items SET parent_id = $1, name = $2, visibility = $3,
+          data_json = $4::JSONB, updated_at = $5
+        WHERE id = $6
+      `, [fields.parentId, fields.name, fields.visibility, JSON.stringify(fields.data), updatedAt, itemId]);
+      return result.rowCount > 0;
+    },
+    async deleteLibraryItem(itemId) {
+      const result = await pool.query('DELETE FROM library_items WHERE id = $1', [itemId]);
       return result.rowCount > 0;
     }
   };
