@@ -4,6 +4,18 @@ const { Pool } = require('pg');
 
 const MIGRATIONS_DIRECTORY = path.join(__dirname, 'postgres-migrations');
 
+function getPostgresSslConfig(connectionString, caCertificate) {
+  const hostname = new URL(connectionString).hostname;
+  const isSupabase = hostname.endsWith('.supabase.co') || hostname.endsWith('.pooler.supabase.com');
+  if (!isSupabase) return undefined;
+  if (!caCertificate?.includes('-----BEGIN CERTIFICATE-----')) {
+    const error = new Error('Configure DATABASE_SSL_CA_CERT com o certificado raiz baixado nas configurações SSL do Supabase.');
+    error.code = 'SUPABASE_CA_CERT_REQUIRED';
+    throw error;
+  }
+  return { rejectUnauthorized: true, ca: caCertificate };
+}
+
 function timeLabel(createdAt) {
   return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
@@ -42,15 +54,14 @@ async function getRoomBannedUserFrom(queryable, roomId, userId) {
 
 async function createPostgresStore(connectionString) {
   if (!connectionString) throw new Error('DATABASE_URL não foi configurada.');
+  const ssl = getPostgresSslConfig(connectionString, process.env.DATABASE_SSL_CA_CERT);
   const pool = new Pool({
     connectionString,
     options: '-c search_path=freecast,public',
     max: 5,
     connectionTimeoutMillis: 10000,
     idleTimeoutMillis: 30000,
-    ...(new URL(connectionString).hostname.endsWith('.supabase.co') || new URL(connectionString).hostname.endsWith('.pooler.supabase.com')
-      ? { ssl: { rejectUnauthorized: true } }
-      : {})
+    ...(ssl ? { ssl } : {})
   });
   pool.on('error', error => {
     console.error('PostgreSQL pool error:', error.code || 'unknown error');
@@ -431,4 +442,4 @@ async function createPostgresStore(connectionString) {
   return store;
 }
 
-module.exports = { createPostgresStore };
+module.exports = { createPostgresStore, getPostgresSslConfig };

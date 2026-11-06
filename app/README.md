@@ -46,6 +46,7 @@ Em produção, configure no ambiente do processo:
 
 - `NODE_ENV=production`
 - `DATABASE_URL` como variável secreta, usando a conexão PostgreSQL do banco escolhido
+- `DATABASE_SSL_CA_CERT` com o certificado raiz PEM baixado em Supabase → Database Settings → SSL Configuration (necessário para verificar a cadeia TLS do Supabase)
 - `WEB_ORIGIN=https://<origem-configurada>` para validar origem e cookies
 - `BIND_HOST=0.0.0.0` e `PORT` fornecidos pelo provedor
 
@@ -59,4 +60,6 @@ O manifest e o service worker ficam em `web/public/`. O shell HTML/CSS/JS pode a
 
 ## Limitações e publicação
 
-Não há salas privadas/invites, recuperação de senha, ficha específica de sistema, biblioteca de tokens/arte de mapas, presença online, nem armazenamento multi-instância. A hospedagem não está configurada. O backend usa SQLite local e requer um caminho de dados persistente; não publique em um filesystem efêmero como se os dados fossem duráveis. Uma publicação com Postgres exige adaptar o armazenamento e aplicar migrações no banco escolhido. Antes de criar serviços ou consumir créditos de hospedagem, confirme o limite de custo e a estratégia de persistência. Não há configuração de deploy ou segredo incluído neste repositório.
+Não há salas privadas/invites, recuperação de senha, ficha específica de sistema, biblioteca de tokens/arte de mapas, presença online nem armazenamento multi-instância.
+
+A configuração de deploy Railway está no repositório. O build remoto passou, mas o deploy encerrou com `SELF_SIGNED_CERT_IN_CHAIN` ao verificar o certificado TLS do Supabase. Configure `DATABASE_URL` com a conexão PostgreSQL e `DATABASE_SSL_CA_CERT` com o certificado raiz PEM baixado em Supabase → Database Settings → SSL Configuration; mantenha a verificação TLS ativa. Cadastre ambos diretamente em Railway → Freecast → Variables; não compartilhe seus valores nem os salve no repositório. O backend cria o schema PostgreSQL `freecast` no startup e não importa dados do SQLite local. O serviço ainda precisa de verificação de conexão/migração e domínio público. Mantenha uma única réplica e interrompa antes de exceder o crédito trial autorizado de US$5 ou exigir pagamento/upgrade.
