@@ -10,9 +10,36 @@ const { createStore, loadDemoState, persistDemoState } = require('./store');
 
 function nextMessage(socket) {
   return new Promise((resolve, reject) => {
-    socket.once('message', raw => resolve(JSON.parse(raw.toString())));
-    socket.once('error', reject);
+    const cleanup = () => {
+      socket.off('message', onMessage);
+      socket.off('error', onError);
+    };
+    const onMessage = raw => {
+      cleanup();
+      resolve(JSON.parse(raw.toString()));
+    };
+    const onError = error => {
+      cleanup();
+      reject(error);
+    };
+    socket.once('message', onMessage);
+    socket.once('error', onError);
   });
+}
+
+async function assertNoMessage(socket, timeoutMs = 100) {
+  const receivedMessage = await new Promise(resolve => {
+    const timeout = setTimeout(() => {
+      socket.off('message', onMessage);
+      resolve(false);
+    }, timeoutMs);
+    const onMessage = () => {
+      clearTimeout(timeout);
+      resolve(true);
+    };
+    socket.once('message', onMessage);
+  });
+  assert.equal(receivedMessage, false, 'socket should not receive a map update');
 }
 
 async function startTestServer(databasePath, options = {}) {
@@ -406,6 +433,19 @@ test('map tokens move by authorized room members and persist with drawings', asy
     assert.equal(mapResponse.status, 201);
     const map = (await mapResponse.json()).item;
 
+    const gmSocket = await connectToRoom(runtime, gmCookie, room.id);
+    const playerSocket = await connectToRoom(runtime, playerCookie, room.id);
+    const spectatorSocket = await connectToRoom(runtime, spectatorCookie, room.id);
+    runtime = { ...runtime, sockets: [gmSocket.socket, playerSocket.socket, spectatorSocket.socket] };
+    const expectMapUpdate = async (socketMessage, expectedMapId, verifyData) => {
+      const message = await socketMessage;
+      assert.equal(message.type, 'MAP_UPDATED');
+      assert.equal(message.payload.mapId, expectedMapId);
+      verifyData(message.payload.data);
+    };
+
+    const gmTokenAdded = nextMessage(gmSocket.socket);
+    const playerTokenAdded = nextMessage(playerSocket.socket);
     const tokenResponse = await fetch(`${runtime.origin}/api/library/${map.id}/tokens`, {
       method: 'POST',
       headers: { cookie: gmCookie, 'content-type': 'application/json' },
@@ -413,6 +453,11 @@ test('map tokens move by authorized room members and persist with drawings', asy
     });
     assert.equal(tokenResponse.status, 201);
     const token = (await tokenResponse.json()).token;
+    await expectMapUpdate(gmTokenAdded, map.id, data => assert.equal(data.tokens.some(item => item.id === token.id), true));
+    await expectMapUpdate(playerTokenAdded, map.id, data => assert.equal(data.tokens.some(item => item.id === token.id), true));
+
+    const gmOtherTokenAdded = nextMessage(gmSocket.socket);
+    const playerOtherTokenAdded = nextMessage(playerSocket.socket);
     const otherTokenResponse = await fetch(`${runtime.origin}/api/library/${map.id}/tokens`, {
       method: 'POST',
       headers: { cookie: gmCookie, 'content-type': 'application/json' },
@@ -420,7 +465,11 @@ test('map tokens move by authorized room members and persist with drawings', asy
     });
     assert.equal(otherTokenResponse.status, 201);
     const otherToken = (await otherTokenResponse.json()).token;
+    await expectMapUpdate(gmOtherTokenAdded, map.id, data => assert.equal(data.tokens.some(item => item.id === otherToken.id), true));
+    await expectMapUpdate(playerOtherTokenAdded, map.id, data => assert.equal(data.tokens.some(item => item.id === otherToken.id), true));
 
+    const gmDrawingAdded = nextMessage(gmSocket.socket);
+    const playerDrawingAdded = nextMessage(playerSocket.socket);
     const drawingResponse = await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
       method: 'POST',
       headers: { cookie: gmCookie, 'content-type': 'application/json' },
@@ -428,6 +477,8 @@ test('map tokens move by authorized room members and persist with drawings', asy
     });
     assert.equal(drawingResponse.status, 201);
     const drawing = (await drawingResponse.json()).drawing;
+    await expectMapUpdate(gmDrawingAdded, map.id, data => assert.equal(data.drawings.some(item => item.id === drawing.id), true));
+    await expectMapUpdate(playerDrawingAdded, map.id, data => assert.equal(data.drawings.some(item => item.id === drawing.id), true));
     assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
       method: 'POST',
       headers: { cookie: playerCookie, 'content-type': 'application/json' },
@@ -443,11 +494,6 @@ test('map tokens move by authorized room members and persist with drawings', asy
       headers: { cookie: gmCookie, 'content-type': 'application/json' },
       body: JSON.stringify({ color: '#ff0000', width: 3, points: [{ x: -1, y: 10 }, { x: 20, y: 20 }] })
     })).status, 400);
-
-    const gmSocket = await connectToRoom(runtime, gmCookie, room.id);
-    const playerSocket = await connectToRoom(runtime, playerCookie, room.id);
-    const spectatorSocket = await connectToRoom(runtime, spectatorCookie, room.id);
-    runtime = { ...runtime, sockets: [gmSocket.socket, playerSocket.socket, spectatorSocket.socket] };
 
     const gmUpdate = nextMessage(gmSocket.socket);
     const playerUpdate = nextMessage(playerSocket.socket);
@@ -480,6 +526,36 @@ test('map tokens move by authorized room members and persist with drawings', asy
     }));
     assert.equal((await spectatorMove).type, 'ERROR');
 
+    const gmTokenRemoved = nextMessage(gmSocket.socket);
+    const playerTokenRemoved = nextMessage(playerSocket.socket);
+    assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/tokens/${otherToken.id}`, {
+      method: 'DELETE',
+      headers: { cookie: gmCookie }
+    })).status, 200);
+    await expectMapUpdate(gmTokenRemoved, map.id, data => assert.equal(data.tokens.some(item => item.id === otherToken.id), false));
+    await expectMapUpdate(playerTokenRemoved, map.id, data => assert.equal(data.tokens.some(item => item.id === otherToken.id), false));
+
+    const gmTemporaryDrawingAdded = nextMessage(gmSocket.socket);
+    const playerTemporaryDrawingAdded = nextMessage(playerSocket.socket);
+    const temporaryDrawingResponse = await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ color: '#00ff00', width: 2, points: [{ x: 1, y: 1 }, { x: 2, y: 2 }] })
+    });
+    assert.equal(temporaryDrawingResponse.status, 201);
+    const temporaryDrawing = (await temporaryDrawingResponse.json()).drawing;
+    await expectMapUpdate(gmTemporaryDrawingAdded, map.id, data => assert.equal(data.drawings.some(item => item.id === temporaryDrawing.id), true));
+    await expectMapUpdate(playerTemporaryDrawingAdded, map.id, data => assert.equal(data.drawings.some(item => item.id === temporaryDrawing.id), true));
+
+    const gmDrawingRemoved = nextMessage(gmSocket.socket);
+    const playerDrawingRemoved = nextMessage(playerSocket.socket);
+    assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/drawings/${temporaryDrawing.id}`, {
+      method: 'DELETE',
+      headers: { cookie: gmCookie }
+    })).status, 200);
+    await expectMapUpdate(gmDrawingRemoved, map.id, data => assert.equal(data.drawings.some(item => item.id === temporaryDrawing.id), false));
+    await expectMapUpdate(playerDrawingRemoved, map.id, data => assert.equal(data.drawings.some(item => item.id === temporaryDrawing.id), false));
+
     const privateMapResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
       method: 'POST',
       headers: { cookie: gmCookie, 'content-type': 'application/json' },
@@ -492,6 +568,18 @@ test('map tokens move by authorized room members and persist with drawings', asy
     });
     assert.equal(privateMapResponse.status, 201);
     const privateMap = (await privateMapResponse.json()).item;
+    await assertNoMessage(gmSocket.socket);
+    await assertNoMessage(playerSocket.socket);
+    const gmPrivateMapUpdate = nextMessage(gmSocket.socket);
+    const privateTokenResponse = await fetch(`${runtime.origin}/api/library/${privateMap.id}/tokens`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Privado adicional', x: 2, y: 2 })
+    });
+    assert.equal(privateTokenResponse.status, 201);
+    await expectMapUpdate(gmPrivateMapUpdate, privateMap.id, data => assert.equal(data.tokens.length, 2));
+    await assertNoMessage(playerSocket.socket);
+
     const hiddenMapMove = nextMessage(playerSocket.socket);
     playerSocket.socket.send(JSON.stringify({
       type: 'MOVE_MAP_TOKEN',

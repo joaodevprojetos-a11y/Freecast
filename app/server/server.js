@@ -404,6 +404,20 @@ async function createAppServer(options = {}) {
     return db.getLibraryItem(item.id);
   }
 
+  async function broadcastMapUpdate(roomId, item) {
+    const message = JSON.stringify({
+      type: 'MAP_UPDATED',
+      payload: { mapId: item.id, data: item.data }
+    });
+    await Promise.all([...wss.clients].map(async client => {
+      if (client.roomId !== roomId || client.readyState !== WebSocket.OPEN) return;
+      const membership = await db.getRoomMembership(roomId, client.userId);
+      if (!membership || await db.getRoomBannedUser(roomId, client.userId)) return;
+      if (!await getVisibleMap(roomId, item.id, membership.role)) return;
+      client.send(message);
+    }));
+  }
+
   async function moveMapToken(roomId, actor, payload) {
     if (!payload || typeof payload.mapId !== 'string' || typeof payload.tokenId !== 'string'
       || !Number.isInteger(payload.x) || !Number.isInteger(payload.y)) {
@@ -996,6 +1010,7 @@ async function createAppServer(options = {}) {
       ...item.data,
       tokens: [...(Array.isArray(item.data.tokens) ? item.data.tokens : []), token]
     });
+    await broadcastMapUpdate(item.roomId, updatedItem);
     response.status(201).json({ item: updatedItem, token });
   }));
 
@@ -1019,6 +1034,7 @@ async function createAppServer(options = {}) {
       ...item.data,
       tokens: tokens.filter(token => token.id !== request.params.tokenId)
     });
+    await broadcastMapUpdate(item.roomId, updatedItem);
     response.json({ item: updatedItem });
   }));
 
@@ -1042,6 +1058,7 @@ async function createAppServer(options = {}) {
       ...item.data,
       drawings: [...(Array.isArray(item.data.drawings) ? item.data.drawings : []), drawing]
     });
+    await broadcastMapUpdate(item.roomId, updatedItem);
     response.status(201).json({ item: updatedItem, drawing });
   }));
 
@@ -1065,6 +1082,7 @@ async function createAppServer(options = {}) {
       ...item.data,
       drawings: drawings.filter(drawing => drawing.id !== request.params.drawingId)
     });
+    await broadcastMapUpdate(item.roomId, updatedItem);
     response.json({ item: updatedItem });
   }));
 

@@ -926,6 +926,7 @@ export function App() {
               message?: string;
               mapId?: string;
               token?: MapToken;
+              data?: LibraryItem['data'];
             };
           };
           if (data.type === 'INIT_STATE' || data.type === 'STATE_UPDATE') {
@@ -936,6 +937,11 @@ export function App() {
             setLibraryItems(current => current.map(item => item.id !== mapId
               ? item
               : { ...item, data: { ...item.data, tokens: item.data.tokens?.map(existing => existing.id === token.id ? token : existing) } }));
+          } else if (data.type === 'MAP_UPDATED' && data.payload?.mapId && data.payload.data) {
+            const { mapId, data: mapData } = data.payload;
+            setLibraryItems(current => current.map(item => item.id !== mapId
+              ? item
+              : { ...item, data: mapData }));
           } else if (data.type === 'ERROR') {
             setErrorMessage(data.payload?.message || 'O servidor recusou a ação.');
           }
