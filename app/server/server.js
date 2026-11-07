@@ -25,6 +25,9 @@ const DEMO_ROOM_ID = 'demo';
 const PASSWORD_MIN_LENGTH = 12;
 const MAX_WEBSOCKET_MESSAGES = 50;
 const WEBSOCKET_MESSAGE_WINDOW_MS = 10000;
+const MAX_MAP_TOKENS = 100;
+const MAX_MAP_DRAWINGS = 200;
+const MAX_DRAWING_POINTS = 500;
 const DND5E_SKILLS = {
   acrobatics: 'dex', animalHandling: 'wis', arcana: 'int', athletics: 'str',
   deception: 'cha', history: 'int', insight: 'wis', intimidation: 'cha',
@@ -370,6 +373,112 @@ async function createAppServer(options = {}) {
       tokens.push({ id: crypto.randomUUID(), name: tokenName, imageUrl, x, y, assignedUserId });
     }
     return { itemType, name, parentId, visibility, data: { width, height, backgroundUrl, tokens } };
+  }
+
+  function getMapDimensions(item) {
+    const width = Number(item?.data?.width);
+    const height = Number(item?.data?.height);
+    if (item?.itemType !== 'map' || !Number.isInteger(width) || !Number.isInteger(height)) return null;
+    return { width, height };
+  }
+
+  async function getVisibleMap(roomId, mapId, role) {
+    const item = await db.getLibraryItem(mapId);
+    if (!item || item.roomId !== roomId || !getMapDimensions(item)) return null;
+    if (role !== 'gm') {
+      const visibleItems = filterVisibleLibraryItems(await db.listLibraryItems(roomId), role);
+      if (!visibleItems.some(visibleItem => visibleItem.id === item.id)) return null;
+    }
+    return item;
+  }
+
+  async function persistLibraryData(item, data) {
+    const updatedAt = new Date().toISOString();
+    const updated = await db.updateLibraryItem(item.id, {
+      parentId: item.parentId,
+      name: item.name,
+      visibility: item.visibility,
+      data
+    }, updatedAt);
+    if (!updated) throw new Error('O mapa deixou de existir durante a atualização.');
+    return db.getLibraryItem(item.id);
+  }
+
+  async function moveMapToken(roomId, actor, payload) {
+    if (!payload || typeof payload.mapId !== 'string' || typeof payload.tokenId !== 'string'
+      || !Number.isInteger(payload.x) || !Number.isInteger(payload.y)) {
+      return { type: 'ERROR', payload: { message: 'Movimento de token inválido.' } };
+    }
+    const item = await getVisibleMap(roomId, payload.mapId, actor.role);
+    const dimensions = getMapDimensions(item);
+    const tokens = item?.data?.tokens;
+    const token = Array.isArray(tokens) ? tokens.find(candidate => candidate.id === payload.tokenId) : null;
+    if (!item || !dimensions || !token) {
+      return { type: 'ERROR', payload: { message: 'Mapa ou token não encontrado.' } };
+    }
+    if (actor.role === 'spectator'
+      || (actor.role !== 'gm' && (actor.role !== 'player' || token.assignedUserId !== actor.id))) {
+      return { type: 'ERROR', payload: { message: 'Você só pode mover tokens atribuídos a você.' } };
+    }
+    if (payload.x < 0 || payload.y < 0 || payload.x >= dimensions.width || payload.y >= dimensions.height) {
+      return { type: 'ERROR', payload: { message: 'O token precisa permanecer dentro dos limites do mapa.' } };
+    }
+    const nextToken = { ...token, x: payload.x, y: payload.y };
+    const nextData = {
+      ...item.data,
+      tokens: tokens.map(candidate => candidate.id === nextToken.id ? nextToken : candidate)
+    };
+    await persistLibraryData(item, nextData);
+    return { type: 'MAP_TOKEN_MOVED', payload: { mapId: item.id, token: nextToken } };
+  }
+
+  async function validMapToken(body, item) {
+    const dimensions = getMapDimensions(item);
+    const name = typeof body?.name === 'string' ? body.name.trim() : '';
+    const imageUrl = parsePublicUrl(body?.imageUrl);
+    const x = body?.x === undefined ? 0 : Number(body.x);
+    const y = body?.y === undefined ? 0 : Number(body.y);
+    const assignedUserId = typeof body?.assignedUserId === 'string' && body.assignedUserId
+      ? body.assignedUserId
+      : null;
+    const tokens = Array.isArray(item?.data?.tokens) ? item.data.tokens : [];
+    if (!dimensions || !name || name.length > 60 || imageUrl === undefined
+      || !Number.isInteger(x) || !Number.isInteger(y)
+      || x < 0 || y < 0 || x >= dimensions.width || y >= dimensions.height
+      || tokens.length >= MAX_MAP_TOKENS) return null;
+    if (assignedUserId) {
+      const assignedMember = await db.getRoomMembership(item.roomId, assignedUserId);
+      if (!assignedMember || assignedMember.role !== 'player') return null;
+    }
+    return {
+      id: crypto.randomUUID(),
+      name,
+      imageUrl,
+      x,
+      y,
+      assignedUserId
+    };
+  }
+
+  function validMapDrawing(body, item) {
+    const dimensions = getMapDimensions(item);
+    const color = typeof body?.color === 'string' ? body.color : '';
+    const width = Number(body?.width);
+    const rawPoints = body?.points;
+    const drawings = Array.isArray(item?.data?.drawings) ? item.data.drawings : [];
+    if (!dimensions || drawings.length >= MAX_MAP_DRAWINGS || !/^#[0-9a-f]{6}$/i.test(color)
+      || !Number.isFinite(width) || width < 1 || width > 12
+      || !Array.isArray(rawPoints) || rawPoints.length < 2 || rawPoints.length > MAX_DRAWING_POINTS) return null;
+    const maxX = dimensions.width * 48;
+    const maxY = dimensions.height * 48;
+    const points = [];
+    for (const point of rawPoints) {
+      const x = Number(point?.x);
+      const y = Number(point?.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || y < 0 || x > maxX || y > maxY) return null;
+      points.push({ x, y });
+    }
+    return { id: crypto.randomUUID(), color, width, points };
   }
 
   function filterVisibleLibraryItems(items, role) {
@@ -867,6 +976,98 @@ async function createAppServer(options = {}) {
     response.status(204).end();
   }));
 
+  app.post('/api/library/:itemId/tokens', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Mapa não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode criar tokens no mapa.' });
+      return;
+    }
+    const token = await validMapToken(request.body, item);
+    if (!token) {
+      response.status(400).json({ error: 'Token inválido. Confira nome, URL, posição, atribuição e o limite de tokens.' });
+      return;
+    }
+    const updatedItem = await persistLibraryData(item, {
+      ...item.data,
+      tokens: [...(Array.isArray(item.data.tokens) ? item.data.tokens : []), token]
+    });
+    response.status(201).json({ item: updatedItem, token });
+  }));
+
+  app.delete('/api/library/:itemId/tokens/:tokenId', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Mapa não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode remover tokens do mapa.' });
+      return;
+    }
+    const tokens = Array.isArray(item.data.tokens) ? item.data.tokens : [];
+    if (!tokens.some(token => token.id === request.params.tokenId)) {
+      response.status(404).json({ error: 'Token não encontrado.' });
+      return;
+    }
+    const updatedItem = await persistLibraryData(item, {
+      ...item.data,
+      tokens: tokens.filter(token => token.id !== request.params.tokenId)
+    });
+    response.json({ item: updatedItem });
+  }));
+
+  app.post('/api/library/:itemId/drawings', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Mapa não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode desenhar no mapa.' });
+      return;
+    }
+    const drawing = validMapDrawing(request.body, item);
+    if (!drawing) {
+      response.status(400).json({ error: 'Desenho inválido ou fora dos limites permitidos.' });
+      return;
+    }
+    const updatedItem = await persistLibraryData(item, {
+      ...item.data,
+      drawings: [...(Array.isArray(item.data.drawings) ? item.data.drawings : []), drawing]
+    });
+    response.status(201).json({ item: updatedItem, drawing });
+  }));
+
+  app.delete('/api/library/:itemId/drawings/:drawingId', requireAuth, asyncHandler(async (request, response) => {
+    const item = await db.getLibraryItem(request.params.itemId);
+    const membership = item && await getAuthorizedMembership(item.roomId, request.user.id);
+    if (!item || !membership) {
+      response.status(404).json({ error: 'Mapa não encontrado.' });
+      return;
+    }
+    if (membership.role !== 'gm') {
+      response.status(403).json({ error: 'Somente o mestre pode remover desenhos do mapa.' });
+      return;
+    }
+    const drawings = Array.isArray(item.data.drawings) ? item.data.drawings : [];
+    if (!drawings.some(drawing => drawing.id === request.params.drawingId)) {
+      response.status(404).json({ error: 'Desenho não encontrado.' });
+      return;
+    }
+    const updatedItem = await persistLibraryData(item, {
+      ...item.data,
+      drawings: drawings.filter(drawing => drawing.id !== request.params.drawingId)
+    });
+    response.json({ item: updatedItem });
+  }));
+
   app.post('/api/rooms/:roomId/members/:targetUserId/role', requireAuth, asyncHandler(async (request, response) => {
     const { roomId, targetUserId } = request.params;
     const actorMembership = await getAuthorizedMembership(roomId, request.user.id);
@@ -1067,6 +1268,21 @@ async function createAppServer(options = {}) {
               return;
             }
             actorCharacter = character;
+          }
+          if (incomingMessage?.type === 'MOVE_MAP_TOKEN') {
+            const result = await moveMapToken(room.id, {
+              id: user.id,
+              role: currentMembership.role
+            }, incomingMessage.payload);
+            if (result.type === 'ERROR') {
+              ws.send(JSON.stringify(result));
+              return;
+            }
+            const serialized = JSON.stringify(result);
+            wss.clients.forEach(client => {
+              if (client.roomId === room.id && client.readyState === WebSocket.OPEN) client.send(serialized);
+            });
+            return;
           }
           const state = await getRoomState(room.id);
           const previousState = structuredClone(state);

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Compass, Dices, Home, Maximize2, MessageSquare, Send, Shield, Users } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Compass, Dices, Home, Maximize2, MessageSquare, Minus, Move, Pencil, Plus, Send, Shield, Trash2, Users } from 'lucide-react';
 
 interface ChatMessage {
   id: string;
@@ -61,6 +61,27 @@ interface Character {
   data: Record<string, unknown>;
 }
 
+interface MapToken {
+  id: string;
+  name: string;
+  imageUrl?: string | null;
+  x: number;
+  y: number;
+  assignedUserId: string | null;
+}
+
+interface MapPoint {
+  x: number;
+  y: number;
+}
+
+interface MapDrawing {
+  id: string;
+  color: string;
+  width: number;
+  points: MapPoint[];
+}
+
 interface LibraryItem {
   id: string;
   roomId: string;
@@ -68,8 +89,34 @@ interface LibraryItem {
   itemType: 'folder' | 'map';
   name: string;
   visibility: 'private' | 'room';
-  data: { width?: number; height?: number; backgroundUrl?: string | null };
+  data: {
+    width?: number;
+    height?: number;
+    backgroundUrl?: string | null;
+    tokens?: MapToken[];
+    drawings?: MapDrawing[];
+  };
 }
+
+interface MapView {
+  x: number;
+  y: number;
+  scale: number;
+}
+
+type MapGesture =
+  | { kind: 'pan'; pointerId: number; startX: number; startY: number; viewX: number; viewY: number }
+  | { kind: 'token'; pointerId: number; tokenId: string; x: number; y: number }
+  | { kind: 'draw'; pointerId: number; points: MapPoint[] }
+  | {
+    kind: 'pinch';
+    pointerIds: [number, number];
+    startDistance: number;
+    startCenter: MapPoint;
+    view: MapView;
+  };
+
+const MAP_CELL_SIZE = 48;
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -128,6 +175,15 @@ export function App() {
   const [libraryHeight, setLibraryHeight] = useState(12);
   const [libraryBackgroundUrl, setLibraryBackgroundUrl] = useState('');
   const [libraryParentId, setLibraryParentId] = useState('');
+  const [mapView, setMapView] = useState<MapView>({ x: 16, y: 16, scale: 1 });
+  const [mapTool, setMapTool] = useState<'pan' | 'draw'>('pan');
+  const [mapDrawingColor, setMapDrawingColor] = useState('#e4b54a');
+  const [mapTokenName, setMapTokenName] = useState('');
+  const [mapTokenImageUrl, setMapTokenImageUrl] = useState('');
+  const [mapTokenOwnerId, setMapTokenOwnerId] = useState('');
+  const [mapTokenX, setMapTokenX] = useState(0);
+  const [mapTokenY, setMapTokenY] = useState(0);
+  const [draggedToken, setDraggedToken] = useState<{ id: string; x: number; y: number } | null>(null);
   const [campaignName, setCampaignName] = useState('');
   const [campaignDescription, setCampaignDescription] = useState('');
   const [editingCampaignId, setEditingCampaignId] = useState<string | null>(null);
@@ -158,6 +214,11 @@ export function App() {
   const [inputMessage, setInputMessage] = useState('');
   const [diceExpr, setDiceExpr] = useState('1d20');
   const [activeTab, setActiveTab] = useState<'chat' | 'dice' | 'members'>('chat');
+  const mapViewportRef = useRef<HTMLDivElement>(null);
+  const mapPointersRef = useRef(new Map<number, MapPoint>());
+  const mapGestureRef = useRef<MapGesture | null>(null);
+  const mapViewRef = useRef(mapView);
+  mapViewRef.current = mapView;
   const activeRoom = rooms.find(room => room.id === activeRoomId) || null;
   const isRoomMember = Boolean(activeRoom?.role);
   const selectedLibraryItem = libraryItems.find(item => item.id === selectedLibraryItemId && item.itemType === 'map') || null;
@@ -283,6 +344,248 @@ export function App() {
       await refreshLibrary();
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Não foi possível excluir o item.');
+    }
+  };
+
+  const updateLibraryMap = (item: LibraryItem) => {
+    setLibraryItems(current => current.map(existing => existing.id === item.id ? item : existing));
+  };
+
+  const handleCreateMapToken = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!selectedLibraryItem || activeRoom?.role !== 'gm') return;
+    try {
+      const response = await fetch(`${API_BASE}/api/library/${encodeURIComponent(selectedLibraryItem.id)}/tokens`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          name: mapTokenName,
+          imageUrl: mapTokenImageUrl || null,
+          assignedUserId: mapTokenOwnerId || null,
+          x: mapTokenX,
+          y: mapTokenY
+        })
+      });
+      const result = await response.json() as { item?: LibraryItem; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error || 'Não foi possível criar o token.');
+      updateLibraryMap(result.item);
+      setMapTokenName('');
+      setMapTokenImageUrl('');
+      setErrorMessage('');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível criar o token.');
+    }
+  };
+
+  const handleDeleteMapToken = async (token: MapToken) => {
+    if (!selectedLibraryItem || activeRoom?.role !== 'gm') return;
+    try {
+      const response = await fetch(`${API_BASE}/api/library/${encodeURIComponent(selectedLibraryItem.id)}/tokens/${encodeURIComponent(token.id)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const result = await response.json() as { item?: LibraryItem; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error || 'Não foi possível remover o token.');
+      updateLibraryMap(result.item);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível remover o token.');
+    }
+  };
+
+  const handleSaveMapDrawing = async (points: MapPoint[]) => {
+    if (!selectedLibraryItem || activeRoom?.role !== 'gm' || points.length < 2) return;
+    const step = Math.max(1, Math.ceil(points.length / 500));
+    const sampledPoints = points.filter((_, index) => index % step === 0).slice(0, 500);
+    try {
+      const response = await fetch(`${API_BASE}/api/library/${encodeURIComponent(selectedLibraryItem.id)}/drawings`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ color: mapDrawingColor, width: 3, points: sampledPoints })
+      });
+      const result = await response.json() as { item?: LibraryItem; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error || 'Não foi possível salvar o desenho.');
+      updateLibraryMap(result.item);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível salvar o desenho.');
+    }
+  };
+
+  const handleDeleteMapDrawing = async (drawing: MapDrawing) => {
+    if (!selectedLibraryItem || activeRoom?.role !== 'gm') return;
+    try {
+      const response = await fetch(`${API_BASE}/api/library/${encodeURIComponent(selectedLibraryItem.id)}/drawings/${encodeURIComponent(drawing.id)}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      const result = await response.json() as { item?: LibraryItem; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error || 'Não foi possível remover o desenho.');
+      updateLibraryMap(result.item);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Não foi possível remover o desenho.');
+    }
+  };
+
+  const fitMapToViewport = () => {
+    if (!selectedLibraryItem || !mapViewportRef.current) return;
+    const width = gridWidth * MAP_CELL_SIZE;
+    const height = gridHeight * MAP_CELL_SIZE;
+    const scale = Math.min(
+      (mapViewportRef.current.clientWidth - 32) / width,
+      (mapViewportRef.current.clientHeight - 32) / height,
+      1.5
+    );
+    const nextScale = Math.max(0.02, scale);
+    setMapView({
+      scale: nextScale,
+      x: (mapViewportRef.current.clientWidth - width * nextScale) / 2,
+      y: (mapViewportRef.current.clientHeight - height * nextScale) / 2
+    });
+  };
+
+  const zoomMap = (factor: number) => {
+    const viewport = mapViewportRef.current;
+    if (!viewport) return;
+    const center = { x: viewport.clientWidth / 2, y: viewport.clientHeight / 2 };
+    const scale = Math.max(0.02, Math.min(3, mapView.scale * factor));
+    const mapX = (center.x - mapView.x) / mapView.scale;
+    const mapY = (center.y - mapView.y) / mapView.scale;
+    setMapView({ scale, x: center.x - mapX * scale, y: center.y - mapY * scale });
+  };
+
+  const mapPointFromClient = (clientX: number, clientY: number) => {
+    const rect = mapViewportRef.current?.getBoundingClientRect();
+    if (!rect) return { x: 0, y: 0 };
+    return {
+      x: (clientX - rect.left - mapView.x) / mapView.scale,
+      y: (clientY - rect.top - mapView.y) / mapView.scale
+    };
+  };
+
+  const clampMapPoint = (point: MapPoint): MapPoint => ({
+    x: Math.max(0, Math.min(gridWidth * MAP_CELL_SIZE, point.x)),
+    y: Math.max(0, Math.min(gridHeight * MAP_CELL_SIZE, point.y))
+  });
+
+  const handleMapPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0 || !selectedLibraryItem) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    mapPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (mapPointersRef.current.size >= 2) {
+      const entries = [...mapPointersRef.current.entries()].slice(0, 2);
+      const [first, second] = entries.map(([, point]) => point);
+      mapGestureRef.current = {
+        kind: 'pinch',
+        pointerIds: [entries[0][0], entries[1][0]],
+        startDistance: Math.hypot(first.x - second.x, first.y - second.y),
+        startCenter: { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 },
+        view: mapView
+      };
+      setDraggedToken(null);
+      return;
+    }
+
+    const tokenElement = (event.target as HTMLElement).closest<HTMLElement>('[data-map-token]');
+    const token = selectedLibraryItem.data.tokens?.find(candidate => candidate.id === tokenElement?.dataset.mapToken);
+    if (token && (activeRoom?.role === 'gm' || (activeRoom?.role === 'player' && token.assignedUserId === user?.id))) {
+      mapGestureRef.current = { kind: 'token', pointerId: event.pointerId, tokenId: token.id, x: token.x, y: token.y };
+      setDraggedToken({ id: token.id, x: token.x, y: token.y });
+      return;
+    }
+    if (mapTool === 'draw' && activeRoom?.role === 'gm') {
+      const point = mapPointFromClient(event.clientX, event.clientY);
+      if (point.x >= 0 && point.y >= 0 && point.x <= gridWidth * MAP_CELL_SIZE && point.y <= gridHeight * MAP_CELL_SIZE) {
+        mapGestureRef.current = { kind: 'draw', pointerId: event.pointerId, points: [point] };
+        return;
+      }
+    }
+    mapGestureRef.current = {
+      kind: 'pan',
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      viewX: mapView.x,
+      viewY: mapView.y
+    };
+  };
+
+  const handleMapPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!mapPointersRef.current.has(event.pointerId)) return;
+    mapPointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const gesture = mapGestureRef.current;
+    if (!gesture) return;
+    if (gesture.kind === 'pinch') {
+      const [first, second] = gesture.pointerIds.map(id => mapPointersRef.current.get(id));
+      if (!first || !second) return;
+      const ratio = Math.hypot(first.x - second.x, first.y - second.y) / Math.max(1, gesture.startDistance);
+      const scale = Math.max(0.02, Math.min(3, gesture.view.scale * ratio));
+      const rect = mapViewportRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const startCenter = { x: gesture.startCenter.x - rect.left, y: gesture.startCenter.y - rect.top };
+      const center = { x: (first.x + second.x) / 2 - rect.left, y: (first.y + second.y) / 2 - rect.top };
+      setMapView({
+        scale,
+        x: center.x - (startCenter.x - gesture.view.x) * (scale / gesture.view.scale),
+        y: center.y - (startCenter.y - gesture.view.y) * (scale / gesture.view.scale)
+      });
+      return;
+    }
+    if (gesture.pointerId !== event.pointerId) return;
+    if (gesture.kind === 'pan') {
+      setMapView(current => ({
+        ...current,
+        x: gesture.viewX + event.clientX - gesture.startX,
+        y: gesture.viewY + event.clientY - gesture.startY
+      }));
+      return;
+    }
+    const point = mapPointFromClient(event.clientX, event.clientY);
+    if (gesture.kind === 'token') {
+      setDraggedToken({
+        id: gesture.tokenId,
+        x: Math.max(0, Math.min(gridWidth - 1, Math.floor(point.x / MAP_CELL_SIZE))),
+        y: Math.max(0, Math.min(gridHeight - 1, Math.floor(point.y / MAP_CELL_SIZE)))
+      });
+    } else {
+      gesture.points.push(clampMapPoint(point));
+    }
+  };
+
+  const finishMapPointer = (event: React.PointerEvent<HTMLDivElement>, cancelled = false) => {
+    mapPointersRef.current.delete(event.pointerId);
+    const gesture = mapGestureRef.current;
+    if (gesture?.kind === 'pinch') {
+      const remaining = [...mapPointersRef.current.entries()][0];
+      mapGestureRef.current = remaining ? {
+        kind: 'pan',
+        pointerId: remaining[0],
+        startX: remaining[1].x,
+        startY: remaining[1].y,
+        viewX: mapView.x,
+        viewY: mapView.y
+      } : null;
+      return;
+    }
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    mapGestureRef.current = null;
+    if (gesture.kind === 'token') {
+      const position = draggedToken?.id === gesture.tokenId ? draggedToken : { x: gesture.x, y: gesture.y };
+      setDraggedToken(null);
+      if (!cancelled && (position.x !== gesture.x || position.y !== gesture.y)) {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          setErrorMessage('Sala desconectada. O movimento do token não foi enviado.');
+        } else {
+          ws.send(JSON.stringify({
+            type: 'MOVE_MAP_TOKEN',
+            payload: { mapId: selectedLibraryItem?.id, tokenId: gesture.tokenId, ...position }
+          }));
+        }
+      }
+    } else if (gesture.kind === 'draw' && !cancelled) {
+      gesture.points.push(clampMapPoint(mapPointFromClient(event.clientX, event.clientY)));
+      void handleSaveMapDrawing(gesture.points);
     }
   };
 
@@ -617,11 +920,22 @@ export function App() {
         try {
           const data = JSON.parse(event.data) as {
             type?: string;
-            payload?: { messages?: ChatMessage[]; diceRolls?: DiceRoll[]; message?: string };
+            payload?: {
+              messages?: ChatMessage[];
+              diceRolls?: DiceRoll[];
+              message?: string;
+              mapId?: string;
+              token?: MapToken;
+            };
           };
           if (data.type === 'INIT_STATE' || data.type === 'STATE_UPDATE') {
             if (data.payload?.messages) setMessages(data.payload.messages);
             if (data.payload?.diceRolls) setDiceRolls(data.payload.diceRolls);
+          } else if (data.type === 'MAP_TOKEN_MOVED' && data.payload?.mapId && data.payload.token) {
+            const { mapId, token } = data.payload;
+            setLibraryItems(current => current.map(item => item.id !== mapId
+              ? item
+              : { ...item, data: { ...item.data, tokens: item.data.tokens?.map(existing => existing.id === token.id ? token : existing) } }));
           } else if (data.type === 'ERROR') {
             setErrorMessage(data.payload?.message || 'O servidor recusou a ação.');
           }
@@ -659,6 +973,31 @@ export function App() {
       socket?.close();
     };
   }, [user?.id, activeRoomId, isRoomMember]);
+
+  useEffect(() => {
+    if (!selectedLibraryItem || mobilePanel !== 'map') return;
+    const viewport = mapViewportRef.current;
+    if (!viewport) return;
+    const frame = window.requestAnimationFrame(fitMapToViewport);
+    const handleWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      const rect = viewport.getBoundingClientRect();
+      const center = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      const currentView = mapViewRef.current;
+      const scale = Math.max(0.02, Math.min(3, currentView.scale * (event.deltaY < 0 ? 1.1 : 0.9)));
+      const mapX = (center.x - currentView.x) / currentView.scale;
+      const mapY = (center.y - currentView.y) / currentView.scale;
+      setMapView({ scale, x: center.x - mapX * scale, y: center.y - mapY * scale });
+    };
+    viewport.addEventListener('wheel', handleWheel, { passive: false });
+    const observer = new ResizeObserver(fitMapToViewport);
+    observer.observe(viewport);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      viewport.removeEventListener('wheel', handleWheel);
+      observer.disconnect();
+    };
+  }, [selectedLibraryItemId, mobilePanel]);
 
   useEffect(() => {
     let active = true;
@@ -1200,21 +1539,105 @@ export function App() {
                 </article>)}
                 {diceRolls.length === 0 && <p className="text-sm text-[#D0CCC4]/60">Ainda não há rolagens nesta mesa.</p>}
               </div>
-            </div> : selectedLibraryItem ? <div className="w-full max-w-[760px] rounded-lg border-2 border-[#A88956]/50 bg-[#191A1D]/90 p-2 shadow-2xl backdrop-blur sm:p-4">
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-1 px-1 sm:px-2">
-                <div className="text-sm font-semibold text-[#A88956] flex items-center space-x-2">
-                  <Compass className="w-4 h-4" />
+            </div> : selectedLibraryItem ? <div className="flex h-full min-h-0 w-full max-w-[1200px] flex-col overflow-hidden rounded-lg border-2 border-[#A88956]/50 bg-[#191A1D]/90 p-2 shadow-2xl backdrop-blur sm:p-3">
+              <div className="mb-2 flex flex-wrap items-center justify-between gap-2 px-1">
+                <div className="flex items-center gap-2 text-sm font-semibold text-[#A88956]">
+                  <Compass className="h-4 w-4" aria-hidden="true" />
                   <span>{selectedLibraryItem.name}</span>
+                  <span className="text-xs font-mono text-[#D0CCC4]/60">{gridWidth} × {gridHeight}</span>
                 </div>
-                <div className="text-xs text-[#D0CCC4]/60 font-mono">Grade {gridWidth} × {gridHeight}</div>
+                <div className="flex flex-wrap items-center gap-1">
+                  <button type="button" onClick={() => setMapTool('pan')} aria-pressed={mapTool === 'pan'} className={`min-h-9 rounded border px-2 text-xs ${mapTool === 'pan' ? 'border-[#A88956] bg-[#542126] text-[#E3D8C6]' : 'border-[#A88956]/30 text-[#D0CCC4]'}`}><Move className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />Mover</button>
+                  {activeRoom?.role === 'gm' && <button type="button" onClick={() => setMapTool('draw')} aria-pressed={mapTool === 'draw'} className={`min-h-9 rounded border px-2 text-xs ${mapTool === 'draw' ? 'border-[#A88956] bg-[#542126] text-[#E3D8C6]' : 'border-[#A88956]/30 text-[#D0CCC4]'}`}><Pencil className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />Desenhar</button>}
+                  <button type="button" onClick={() => zoomMap(0.8)} aria-label="Diminuir zoom" className="min-h-9 min-w-9 rounded border border-[#A88956]/30 text-[#D0CCC4]"><Minus className="mx-auto h-4 w-4" aria-hidden="true" /></button>
+                  <span className="min-w-12 text-center text-xs text-[#D0CCC4]/70">{Math.round(mapView.scale * 100)}%</span>
+                  <button type="button" onClick={() => zoomMap(1.25)} aria-label="Aumentar zoom" className="min-h-9 min-w-9 rounded border border-[#A88956]/30 text-[#D0CCC4]"><Plus className="mx-auto h-4 w-4" aria-hidden="true" /></button>
+                  <button type="button" onClick={fitMapToViewport} aria-label="Ajustar mapa à tela" className="min-h-9 rounded border border-[#A88956]/30 px-2 text-xs text-[#D0CCC4]"><Maximize2 className="mr-1 inline h-3.5 w-3.5" aria-hidden="true" />Ajustar</button>
+                </div>
               </div>
 
-              <div className="relative w-full overflow-auto rounded border border-[#A88956]/30" style={{ backgroundImage: selectedLibraryItem.data.backgroundUrl ? `url("${selectedLibraryItem.data.backgroundUrl}")` : undefined, backgroundSize: '100% 100%' }}>
-                <div className="grid min-w-[320px] gap-px bg-[#A88956]/35 p-px" style={{ gridTemplateColumns: `repeat(${gridWidth}, minmax(0, 1fr))`, aspectRatio: `${gridWidth} / ${gridHeight}` }}>
-                  {Array.from({ length: gridWidth * gridHeight }).map((_, idx) => <div key={idx} className="min-w-0 bg-[#101113]/10" aria-hidden="true" />)}
+              {activeRoom?.role === 'gm' && <form onSubmit={handleCreateMapToken} className="mb-2 grid grid-cols-2 gap-2 rounded border border-[#A88956]/20 bg-[#101113]/70 p-2 sm:grid-cols-6">
+                <input required maxLength={60} value={mapTokenName} onChange={event => setMapTokenName(event.target.value)} aria-label="Nome do token" placeholder="Nome do token" className="col-span-2 min-h-9 rounded border border-[#A88956]/30 bg-[#191A1D] px-2 text-xs sm:col-span-1" />
+                <input type="url" maxLength={2048} value={mapTokenImageUrl} onChange={event => setMapTokenImageUrl(event.target.value)} aria-label="URL da imagem do token" placeholder="URL da imagem (opcional)" className="col-span-2 min-h-9 rounded border border-[#A88956]/30 bg-[#191A1D] px-2 text-xs sm:col-span-2" />
+                <select value={mapTokenOwnerId} onChange={event => setMapTokenOwnerId(event.target.value)} aria-label="Atribuir token a jogador" className="col-span-2 min-h-9 rounded border border-[#A88956]/30 bg-[#191A1D] px-2 text-xs sm:col-span-1">
+                  <option value="">Sem atribuição</option>
+                  {roomMembers.filter(member => member.role === 'player').map(member => <option key={member.id} value={member.id}>{member.username}</option>)}
+                </select>
+                <div className="col-span-2 flex items-center gap-1 sm:col-span-1">
+                  <label className="sr-only" htmlFor="map-token-x">Coluna do token</label>
+                  <input id="map-token-x" type="number" min={0} max={gridWidth - 1} value={mapTokenX} onChange={event => setMapTokenX(Number(event.target.value))} aria-label="Coluna do token" className="min-h-9 w-1/2 rounded border border-[#A88956]/30 bg-[#191A1D] px-2 text-xs" />
+                  <label className="sr-only" htmlFor="map-token-y">Linha do token</label>
+                  <input id="map-token-y" type="number" min={0} max={gridHeight - 1} value={mapTokenY} onChange={event => setMapTokenY(Number(event.target.value))} aria-label="Linha do token" className="min-h-9 w-1/2 rounded border border-[#A88956]/30 bg-[#191A1D] px-2 text-xs" />
+                </div>
+                <button type="submit" className="col-span-2 min-h-9 rounded border border-[#A88956]/50 bg-[#542126] px-3 text-xs font-semibold text-[#E3D8C6] sm:col-span-1">Adicionar token</button>
+              </form>}
+              {activeRoom?.role === 'gm' && (selectedLibraryItem.data.tokens || []).length > 0 && <div className="mb-2 flex flex-wrap gap-1">
+                {(selectedLibraryItem.data.tokens || []).map(token => <span key={token.id} className="inline-flex items-center gap-1 rounded border border-[#A88956]/20 bg-[#101113]/70 py-1 pl-2 text-[10px] text-[#D0CCC4]">
+                  {token.name}
+                  <button type="button" onClick={() => void handleDeleteMapToken(token)} aria-label={`Remover token ${token.name}`} className="min-h-7 min-w-7 text-red-200"><Trash2 className="mx-auto h-3.5 w-3.5" aria-hidden="true" /></button>
+                </span>)}
+              </div>}
+
+              {activeRoom?.role === 'gm' && <div className="mb-2 flex flex-wrap items-center gap-2 text-[10px] text-[#D0CCC4]/60">
+                <label className="flex items-center gap-1">Cor do desenho <input type="color" value={mapDrawingColor} onChange={event => setMapDrawingColor(event.target.value)} className="h-7 w-9 cursor-pointer rounded border border-[#A88956]/30 bg-transparent" /></label>
+                {(selectedLibraryItem.data.drawings || []).length > 0 && <button type="button" onClick={() => {
+                  const drawings = selectedLibraryItem.data.drawings || [];
+                  const lastDrawing = drawings[drawings.length - 1];
+                  if (lastDrawing) void handleDeleteMapDrawing(lastDrawing);
+                }} className="min-h-8 rounded border border-[#A88956]/30 px-2 text-[#D0CCC4]">Desfazer último traço</button>}
+              </div>}
+
+              <div
+                ref={mapViewportRef}
+                className={`relative min-h-0 flex-1 overflow-hidden rounded border border-[#A88956]/30 bg-[#101113]/70 ${mapTool === 'draw' ? 'cursor-crosshair' : 'cursor-grab active:cursor-grabbing'}`}
+                style={{ touchAction: 'none' }}
+                onPointerDown={handleMapPointerDown}
+                onPointerMove={handleMapPointerMove}
+                onPointerUp={event => finishMapPointer(event)}
+                onPointerCancel={event => finishMapPointer(event, true)}
+              >
+                <div
+                  className="absolute left-0 top-0"
+                  style={{
+                    width: gridWidth * MAP_CELL_SIZE,
+                    height: gridHeight * MAP_CELL_SIZE,
+                    transform: `translate(${mapView.x}px, ${mapView.y}px) scale(${mapView.scale})`,
+                    transformOrigin: 'top left',
+                    backgroundColor: '#191A1D',
+                    backgroundImage: `${selectedLibraryItem.data.backgroundUrl ? `url("${selectedLibraryItem.data.backgroundUrl}")` : ''}${selectedLibraryItem.data.backgroundUrl ? ', ' : ''}linear-gradient(to right, rgba(168,137,86,.55) 1px, transparent 1px), linear-gradient(to bottom, rgba(168,137,86,.55) 1px, transparent 1px)`,
+                    backgroundSize: `${selectedLibraryItem.data.backgroundUrl ? '100% 100%, ' : ''}${MAP_CELL_SIZE}px ${MAP_CELL_SIZE}px, ${MAP_CELL_SIZE}px ${MAP_CELL_SIZE}px`,
+                    backgroundRepeat: `${selectedLibraryItem.data.backgroundUrl ? 'no-repeat, ' : ''}repeat, repeat`
+                  }}
+                >
+                  <svg width={gridWidth * MAP_CELL_SIZE} height={gridHeight * MAP_CELL_SIZE} className="pointer-events-none absolute inset-0 overflow-visible" aria-hidden="true">
+                    {(selectedLibraryItem.data.drawings || []).map(drawing => <polyline
+                      key={drawing.id}
+                      points={drawing.points.map(point => `${point.x},${point.y}`).join(' ')}
+                      fill="none"
+                      stroke={drawing.color}
+                      strokeWidth={drawing.width}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />)}
+                  </svg>
+                  {(selectedLibraryItem.data.tokens || []).map(token => {
+                    const position = draggedToken?.id === token.id ? draggedToken : token;
+                    const canMove = activeRoom?.role === 'gm' || (activeRoom?.role === 'player' && token.assignedUserId === user?.id);
+                    return <button
+                      key={token.id}
+                      type="button"
+                      data-map-token={token.id}
+                      aria-label={`${token.name}${token.assignedUserId ? `, atribuído a ${roomMembers.find(member => member.id === token.assignedUserId)?.username || 'jogador'}` : ''}`}
+                      title={`${token.name}${canMove ? ' · arraste para mover' : ''}`}
+                      className={`absolute z-10 flex h-10 w-10 items-center justify-center overflow-hidden rounded-full border-2 border-[#E4B54A] bg-[#542126] text-[10px] font-bold text-white shadow-lg ${canMove ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'}`}
+                      style={{ left: position.x * MAP_CELL_SIZE + 4, top: position.y * MAP_CELL_SIZE + 4, touchAction: 'none' }}
+                    >
+                      {token.imageUrl ? <img src={token.imageUrl} alt="" draggable={false} className="h-full w-full object-cover" /> : token.name.slice(0, 2).toUpperCase()}
+                    </button>;
+                  })}
                 </div>
               </div>
-              <p className="mt-2 text-[10px] text-[#D0CCC4]/50">Visualização do mapa. Tokens e movimento sincronizado ainda não estão implementados.</p>
+              <p className="mt-2 text-[10px] text-[#D0CCC4]/50">Arraste para mover o mapa; use a roda ou pinça para zoom. {activeRoom?.role === 'player' ? 'Você só move tokens atribuídos a você.' : activeRoom?.role === 'spectator' ? 'Espectadores podem visualizar, mas não mover tokens.' : 'Movimentos são autorizados e sincronizados pelo servidor.'}</p>
             </div> : <div className="max-w-md rounded-lg border border-[#A88956]/25 bg-[#191A1D]/90 p-6 text-center shadow-xl">
               <Compass className="mx-auto h-8 w-8 text-[#A88956]" aria-hidden="true" />
               <h2 className="mt-3 text-lg font-semibold text-[#E3D8C6]">{activeRoom?.name || 'Mesa'}</h2>

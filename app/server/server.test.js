@@ -371,6 +371,159 @@ test('accounts, room membership, and WebSocket broadcasts remain isolated by roo
   }
 });
 
+test('map tokens move by authorized room members and persist with drawings', async () => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rrpg-map-vtt-'));
+  const databasePath = path.join(directory, 'test.sqlite');
+  let runtime;
+  try {
+    runtime = await startTestServer(databasePath);
+    const gmCookie = await registerTestUser(runtime, `gm-${crypto.randomUUID().slice(0, 8)}`);
+    const playerCookie = await registerTestUser(runtime, `player-${crypto.randomUUID().slice(0, 8)}`);
+    const spectatorCookie = await registerTestUser(runtime, `spectator-${crypto.randomUUID().slice(0, 8)}`);
+    const room = await createTestRoom(runtime, gmCookie, 'Mapa sincronizado');
+    assert.equal((await joinTestRoom(runtime, playerCookie, room.id)).status, 200);
+    assert.equal((await joinTestRoom(runtime, spectatorCookie, room.id)).status, 200);
+
+    const player = (await (await fetch(`${runtime.origin}/api/me`, { headers: { cookie: playerCookie } })).json()).user;
+    const spectator = (await (await fetch(`${runtime.origin}/api/me`, { headers: { cookie: spectatorCookie } })).json()).user;
+    const promote = await fetch(`${runtime.origin}/api/rooms/${room.id}/members/${player.id}/role`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'player' })
+    });
+    assert.equal(promote.status, 200);
+
+    const mapResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        itemType: 'map',
+        name: 'Grade 15x27',
+        visibility: 'room',
+        data: { width: 15, height: 27, backgroundUrl: null, tokens: [] }
+      })
+    });
+    assert.equal(mapResponse.status, 201);
+    const map = (await mapResponse.json()).item;
+
+    const tokenResponse = await fetch(`${runtime.origin}/api/library/${map.id}/tokens`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Herói', imageUrl: null, x: 2, y: 3, assignedUserId: player.id })
+    });
+    assert.equal(tokenResponse.status, 201);
+    const token = (await tokenResponse.json()).token;
+    const otherTokenResponse = await fetch(`${runtime.origin}/api/library/${map.id}/tokens`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'NPC', x: 5, y: 5 })
+    });
+    assert.equal(otherTokenResponse.status, 201);
+    const otherToken = (await otherTokenResponse.json()).token;
+
+    const drawingResponse = await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ color: '#ff0000', width: 3, points: [{ x: 10, y: 10 }, { x: 80, y: 96 }] })
+    });
+    assert.equal(drawingResponse.status, 201);
+    const drawing = (await drawingResponse.json()).drawing;
+    assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
+      method: 'POST',
+      headers: { cookie: playerCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ color: '#00ff00', width: 3, points: [{ x: 10, y: 10 }, { x: 20, y: 20 }] })
+    })).status, 403);
+    assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/tokens`, {
+      method: 'POST',
+      headers: { cookie: playerCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Unauthorized', x: 0, y: 0 })
+    })).status, 403);
+    assert.equal((await fetch(`${runtime.origin}/api/library/${map.id}/drawings`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({ color: '#ff0000', width: 3, points: [{ x: -1, y: 10 }, { x: 20, y: 20 }] })
+    })).status, 400);
+
+    const gmSocket = await connectToRoom(runtime, gmCookie, room.id);
+    const playerSocket = await connectToRoom(runtime, playerCookie, room.id);
+    const spectatorSocket = await connectToRoom(runtime, spectatorCookie, room.id);
+    runtime = { ...runtime, sockets: [gmSocket.socket, playerSocket.socket, spectatorSocket.socket] };
+
+    const gmUpdate = nextMessage(gmSocket.socket);
+    const playerUpdate = nextMessage(playerSocket.socket);
+    playerSocket.socket.send(JSON.stringify({
+      type: 'MOVE_MAP_TOKEN',
+      payload: { mapId: map.id, tokenId: token.id, x: 14, y: 26 }
+    }));
+    assert.equal((await playerUpdate).type, 'MAP_TOKEN_MOVED');
+    const broadcast = await gmUpdate;
+    assert.deepEqual([broadcast.payload.token.x, broadcast.payload.token.y], [14, 26]);
+
+    const unauthorizedMove = nextMessage(playerSocket.socket);
+    playerSocket.socket.send(JSON.stringify({
+      type: 'MOVE_MAP_TOKEN',
+      payload: { mapId: map.id, tokenId: otherToken.id, x: 6, y: 6 }
+    }));
+    assert.equal((await unauthorizedMove).type, 'ERROR');
+
+    const outOfBoundsMove = nextMessage(playerSocket.socket);
+    playerSocket.socket.send(JSON.stringify({
+      type: 'MOVE_MAP_TOKEN',
+      payload: { mapId: map.id, tokenId: token.id, x: 15, y: 0 }
+    }));
+    assert.equal((await outOfBoundsMove).type, 'ERROR');
+
+    const spectatorMove = nextMessage(spectatorSocket.socket);
+    spectatorSocket.socket.send(JSON.stringify({
+      type: 'MOVE_MAP_TOKEN',
+      payload: { mapId: map.id, tokenId: token.id, x: 1, y: 1 }
+    }));
+    assert.equal((await spectatorMove).type, 'ERROR');
+
+    const privateMapResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, {
+      method: 'POST',
+      headers: { cookie: gmCookie, 'content-type': 'application/json' },
+      body: JSON.stringify({
+        itemType: 'map',
+        name: 'Mapa privado',
+        visibility: 'private',
+        data: { width: 4, height: 4, tokens: [{ name: 'Privado', x: 1, y: 1 }] }
+      })
+    });
+    assert.equal(privateMapResponse.status, 201);
+    const privateMap = (await privateMapResponse.json()).item;
+    const hiddenMapMove = nextMessage(playerSocket.socket);
+    playerSocket.socket.send(JSON.stringify({
+      type: 'MOVE_MAP_TOKEN',
+      payload: { mapId: privateMap.id, tokenId: privateMap.data.tokens[0].id, x: 2, y: 2 }
+    }));
+    assert.equal((await hiddenMapMove).type, 'ERROR');
+
+    await stopTestServer(runtime);
+    runtime = null;
+    runtime = await startTestServer(databasePath);
+    const restoredResponse = await fetch(`${runtime.origin}/api/rooms/${room.id}/library`, { headers: { cookie: gmCookie } });
+    assert.equal(restoredResponse.status, 200);
+    const restoredMap = (await restoredResponse.json()).items.find(item => item.id === map.id);
+    assert.deepEqual([restoredMap.data.tokens.find(item => item.id === token.id).x, restoredMap.data.tokens.find(item => item.id === token.id).y], [14, 26]);
+    assert.equal(restoredMap.data.drawings.some(item => item.id === drawing.id), true);
+
+    const deleteDrawing = await fetch(`${runtime.origin}/api/library/${map.id}/drawings/${drawing.id}`, {
+      method: 'DELETE',
+      headers: { cookie: gmCookie }
+    });
+    assert.equal(deleteDrawing.status, 200);
+    const deleteToken = await fetch(`${runtime.origin}/api/library/${map.id}/tokens/${token.id}`, {
+      method: 'DELETE',
+      headers: { cookie: gmCookie }
+    });
+    assert.equal(deleteToken.status, 200);
+  } finally {
+    if (runtime) await stopTestServer(runtime);
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
+});
+
 test('moderation is enforced for chat and public room re-entry', async () => {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rrpg-moderation-'));
   let runtime;
